@@ -11,7 +11,7 @@ enum SimulatedCategory: string
     case MEIO_AMBIENTE = 'meio_ambiente';
     case SIMULADO_GERAL = 'simulado_geral';
 
-     public function label(): string
+    public function label(): string
     {
         return match($this) {
             self::LEGISLACAO => 'Legislação de Trânsito',
