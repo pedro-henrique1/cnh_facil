@@ -45,6 +45,12 @@
         .mt-footer {
             margin-top: 8rem;
         }
+
+        .dropdown-menu .dropdown-item:hover,
+        .dropdown-menu .dropdown-item:focus,
+        .dropdown-menu .dropdown-item.active {
+            background-color: transparent !important;
+        }
     </style>
 </head>
 
@@ -61,63 +67,96 @@
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="/">Home</a>
+                    <a class="nav-link @if(request()->routeIs('home')) active fw-bold @endif" href="/">Home</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/about">Sobre a lei</a>
+                    <a class="nav-link @if(request()->routeIs('about')) active fw-bold @endif" href="/about">Sobre a
+                        lei</a>
                 </li>
 
-
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button"
-                       data-bs-toggle="dropdown">Prova Teórica</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('theoretical.information') }}">Informações da
-                                prova teórica</a></li>
-                        <li><a class="dropdown-item" href="{{ route('theoretical.questions') }}">Questões</a></li>
-                        <li><a class="dropdown-item" href="{{ route('theoretical.simulation') }}">Simulados</a></li>
+                    <a class="nav-link dropdown-toggle @if(request()->routeIs('theoretical.*')) active fw-bold @endif"
+                       href="#" role="button" data-bs-toggle="dropdown">Prova Teórica</a>
+                    <ul class="dropdown-menu text-white border-0" style="background-color: #1155cc;">
+                        <li>
+                            <a class="dropdown-item text-white @if(request()->routeIs('theoretical.information')) active fw-bold @endif"
+                               href="{{ route('theoretical.information') }}">Informações da prova teórica</a></li>
+                        <li>
+                            <a class="dropdown-item text-white @if(request()->routeIs('theoretical.questions')) active fw-bold @endif"
+                               href="{{ route('theoretical.questions') }}">Questões</a></li>
+                        <li>
+                            <a class="dropdown-item text-white @if(request()->routeIs('theoretical.simulation')) active fw-bold @endif"
+                               href="{{ route('theoretical.simulation') }}">Simulados</a></li>
                     </ul>
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button"
-                       data-bs-toggle="dropdown">Prova Prática</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('practical.information') }}">Informações</a>
+                    <a class="nav-link dropdown-toggle @if(request()->routeIs('practical.*')) active fw-bold @endif"
+                       href="#"
+                       role="button"
+                       data-bs-toggle="dropdown">
+                        Prova Prática
+                    </a>
+                    <ul class="dropdown-menu border-0" style="background-color: #1155cc;">
+                        <li>
+                            <a class="dropdown-item"
+                               href="{{ route('practical.information') }}"
+                               style="color: #fff;">
+                                Informações
+                            </a>
                         </li>
-                        <li><a class="dropdown-item" href="{{ route('practical.video') }}">Vídeos</a></li>
-                        <li><a class="dropdown-item" href="{{ route('practical.vehicle') }}">Game: Conheça o
-                                veículo</a></li>
-                        <li><a class="dropdown-item" href="{{ route('practical.questions') }}">Game: Simulado
-                                passo-a-passo</a></li>
-
+                        <li>
+                            <a class="dropdown-item"
+                               href="{{ route('practical.video') }}"
+                               style="color: #fff;">
+                                Vídeos
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item"
+                               href="{{ route('practical.vehicle') }}"
+                               style="color: #fff;">
+                                Game: Conheça o veículo
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item"
+                               href="{{ route('practical.questions') }}"
+                               style="color: #fff;">
+                                Game: Simulado passo-a-passo
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
+
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('home.materials') }}">Materiais Oficiais</a>
+                    <a class="nav-link @if(request()->routeIs('home.materials')) active fw-bold @endif"
+                       href="{{ route('home.materials') }}">Materiais Oficiais</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('home.aboutProject') }}">Sobre o projeto</a>
+                    <a class="nav-link @if(request()->routeIs('home.aboutProject')) active fw-bold @endif"
+                       href="{{ route('home.aboutProject') }}">Sobre o projeto</a>
                 </li>
+
                 @auth
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home.minhaconta') }}">Meu perfil</a>
+                        <a class="nav-link @if(request()->routeIs('home.minhaconta')) active fw-bold @endif"
+                           href="{{ route('home.minhaconta') }}">Meu perfil</a>
                     </li>
                 @endauth
-                @guest
 
+                @guest
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Login</a>
+                        <a class="nav-link @if(request()->routeIs('login')) active fw-bold @endif"
+                           href="{{ route('login') }}">Login</a>
                     </li>
                 @endguest
-
             </ul>
         </div>
     </div>
 </nav>
-
 @yield('content')
 
 <footer class="footer bg-dark text-light py-4 mt-footer">
