@@ -8,15 +8,18 @@
             'cards' => [
                 [
                     'titulo' => 'Estude o código de trânsito',
-                    'texto' => 'Adquira conhecimento profundo das leis de trânsito, sinalização, direção defensiva e primeiros socorros.'
+                    'texto' => 'Adquira conhecimento profundo das leis de trânsito, sinalização, direção defensiva e primeiros socorros.',
+                    'link' => route('theoretical.information')
                 ],
                 [
                     'titulo' => 'Simulados online',
-                    'texto' => 'Pratique com testes similares aos aplicados pelo DETRAN. Existem diversos sites e aplicativos disponíveis.'
+                    'texto' => 'Pratique com testes similares aos aplicados pelo DETRAN. Existem diversos sites e aplicativos disponíveis.',
+                    'link' => route('theoretical.simulation')
                 ],
                 [
                     'titulo' => 'Material de estudo',
-                    'texto' => 'Utilize manuais digitais, videoaulas e apostilas especializadas para se preparar adequadamente.'
+                    'texto' => 'Utilize manuais digitais, videoaulas e apostilas especializadas para se preparar adequadamente.',
+                    'link' => route('home.materials')
                 ],
             ]
         ],
@@ -25,15 +28,18 @@
             'cards' => [
                 [
                     'titulo' => 'Quizz: conheça o veículo',
-                    'texto' => 'Nesse quizz, você vai conhecer as partes essenciais do carro para tirar a sua habilitação.'
+                    'texto' => 'Nesse quizz, você vai conhecer as partes essenciais do carro para tirar a sua habilitação.',
+                    'link' => route('practical.vehicle')
                 ],
                 [
                     'titulo' => 'Quizz: simulado passo-a-passo prova prática',
-                    'texto' => 'Pratique os passos da prova de uma forma divertida.'
+                    'texto' => 'Pratique os passos da prova de uma forma divertida.',
+                    'link' => route('practical.questions')
                 ],
                 [
                     'titulo' => 'Conheça o percurso',
-                    'texto' => 'Veja o percurso a ser feito durante a prova.'
+                    'texto' => 'Veja o percurso a ser feito durante a prova.',
+                    'link' => route('practical.information')
                 ],
             ]
         ],
@@ -42,7 +48,8 @@
             'cards' => [
                 [
                     'titulo' => 'Manual do condutor',
-                    'texto' => 'Conheça as boas práticas do trânsito.'
+                    'texto' => 'Conheça as boas práticas do trânsito.',
+                    'link' => route('home.materials')
                 ]
             ]
         ]
@@ -68,7 +75,7 @@
                     class="color-text">{{ $secao['titulo'] }}</h1>
                 <div class="row g-4 mt-lg-5  justify-content-center"
                      style="margin-top: 8rem !important;"> @foreach($secao['cards'] as $card)
-                        <div class="col-md-4"><a href="#" class="card shadow-sm border border-secondary text-decoration-none h-100">
+                        <div class="col-md-4"><a href="{{ $card['link'] }}" class="card shadow-sm border border-secondary text-decoration-none h-100">
                                 <div class="card-body p-4 rounded-3"><h4
                                         class="card-title text-center color-text mb-3">{{ $card['titulo'] }}</h4>
                                     <p class="card-text text-center text-black mt-xl-5"> {{ $card['texto'] }} </p></div>
