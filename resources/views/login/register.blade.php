@@ -2,20 +2,6 @@
 
 @section('content')
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial', sans-serif;
-            background-size: cover;
-            background-image: url('https://images.unsplash.com/photo-1482029255085-35a4a48b7084?q=80&w=1631&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
-            width: 100%;
-            height: 100vh;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
         .card {
             background-color: rgba(255, 255, 255, 0.6);
             border-radius: 15px;
@@ -47,7 +33,7 @@
                 <div class="card shadow-sm border-0 rounded-4 mt-5">
                     <div class="card-header bg-transparent border-bottom text-center">
                         <h3 class="fw-bold text-primary">{{ __('Cadastro') }}</h3>
-                        <p class="text-muted small">Crie sua conta para acessar o sistema</p>
+                        <p class="text-black small">Crie sua conta para acessar o sistema</p>
                     </div>
 
                     <div class="card-body p-4">
@@ -67,19 +53,19 @@
 
                             <!-- Campo de Nome -->
                             <div class="mb-3">
-                                <label for="nome" class="form-label fw-medium text-muted">Nome Completo</label>
+                                <label for="name" class="form-label fw-medium text-black ">Nome Completo</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-primary"></i></span>
-                                    <input type="text" class="form-control form-control-lg border-start-0 @error('nome') is-invalid @enderror" id="nome" name="nome" value="{{ old('nome') }}" required autofocus placeholder="Ex.: João Silva">
+                                    <input type="text" class="form-control form-control-lg border-start-0 @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required autofocus placeholder="Ex.: João Silva">
                                 </div>
-                                @error('nome')
+                                @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <!-- Campo de Email -->
                             <div class="mb-3">
-                                <label for="email" class="form-label fw-medium text-muted">Email</label>
+                                <label for="email" class="form-label fw-medium text-black">Email</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-primary"></i></span>
                                     <input type="email" class="form-control form-control-lg border-start-0 @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" required placeholder="Ex.: joao.silva@email.com">
@@ -92,7 +78,7 @@
 
                             <!-- Campo de Senha -->
                             <div class="mb-3">
-                                <label for="password" class="form-label fw-medium text-muted">Senha</label>
+                                <label for="password" class="form-label fw-medium text-black">Senha</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-primary"></i></span>
                                     <input type="password" class="form-control form-control-lg border-start-0 @error('password') is-invalid @enderror" id="password" name="password" required placeholder="Mínimo de 8 caracteres">
@@ -103,7 +89,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="password_confirmation" class="form-label fw-medium text-muted">Confirmar Senha</label>
+                                <label for="password_confirmation" class="form-label fw-medium text-black">Confirmar Senha</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-primary"></i></span>
                                     <input type="password" class="form-control form-control-lg border-start-0" id="password_confirmation" name="password_confirmation" required placeholder="Repita sua senha">

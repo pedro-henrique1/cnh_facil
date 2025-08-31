@@ -5,10 +5,15 @@
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card shadow-lg border-0 rounded-lg mt-5">
-                    <div class="card-header bg-primary text-white text-center">
+                    <div class="card-header  text-black text-center">
                         <h3 class="fw-bold">{{ __('Entrar') }}</h3>
                     </div>
                     <div class="card-body p-4">
+                        @if(request()->has('error'))
+                            <div class="alert alert-danger">
+                                {{ request()->get('error') }}
+                            </div>
+                        @endif
 
                         <!-- Mensagens de Erro -->
                         @if ($errors->any())
@@ -28,7 +33,7 @@
 
                             <!-- Campo de Email -->
                             <div class="mb-3">
-                                <label for="email" class="form-label fw-bold">Email</label>
+                                <label for="email" class="form-label text-black fw-bold">Email</label>
                                 <input type="email" class="form-control form-control-lg @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" required autofocus placeholder="Digite seu email">
                                 @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -37,7 +42,7 @@
 
                             <!-- Campo de Senha -->
                             <div class="mb-3">
-                                <label for="password" class="form-label fw-bold">Senha</label>
+                                <label for="password" class="form-label text-black fw-bold">Senha</label>
                                 <input type="password" class="form-control form-control-lg @error('password') is-invalid @enderror" id="password" name="password" required placeholder="Digite sua senha">
                                 @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -51,9 +56,9 @@
                         </form>
                     </div>
                     <div class="card-footer text-center py-3">
-                        <p class="small mb-0">
+                        <p class="small mb-0 text-black">
                             Não tem uma conta?
-                            <a href="{{ route('register') }}" class="text-primary fw-bold text-decoration-none">
+                            <a href="{{ route('register') }}" class="text-black fw-bold text-decoration-none">
                                 Cadastrar
                             </a>
                         </p>

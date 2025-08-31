@@ -14,9 +14,6 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    /**
-     * Mostra o formulário de registro.
-     */
     public function showRegistrationForm(): Factory|View
     {
         return view('login.register');
@@ -26,7 +23,7 @@ class AuthController extends Controller
     public function register(Request $request): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
-            'nome' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
@@ -45,7 +42,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('sucesso')->with('success', 'Cadastro realizado com sucesso!');
+        return redirect()->route('home')->with('success', 'Cadastro realizado com sucesso!');
     }
 
     public function showLoginForm(): Factory|View
@@ -63,8 +60,9 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->route('postagem')->with('success', 'Login realizado com sucesso!');
+            return redirect()->intended(route('home'))->with('success', 'Login realizado com sucesso!');
         }
+
 
         return back()->withErrors([
             'email' => 'As credenciais fornecidas não correspondem aos nossos registros.',
