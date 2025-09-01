@@ -20,7 +20,10 @@ class MissionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'Mission';
+    protected static ?string $recordTitleAttribute = 'Miss';
+
+    protected static ?string $navigationLabel = 'Missões';
+
 
     public static function form(Schema $schema): Schema
     {

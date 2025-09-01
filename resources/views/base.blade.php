@@ -165,7 +165,7 @@
             <div class="col-md-6">
                 <h5 class="text-warning">Links Úteis</h5>
                 <ul class="list-unstyled">
-                    <li><a href="#" class="text-light text-decoration-none">Portal do DETRAN</a></li>
+                    <li><a href="https://www.gov.br/pt-br/temas/servicos-de-transito" class="text-light text-decoration-none">Portal do DETRAN</a></li>
                     <li><a href="#" class="text-light text-decoration-none">Legislação de Trânsito</a></li>
                     <li><a href="#" class="text-light text-decoration-none">Simulados Oficiais</a></li>
                 </ul>

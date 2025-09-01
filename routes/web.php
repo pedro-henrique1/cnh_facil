@@ -26,6 +26,9 @@ Route::controller(DashboardController::class)->group(function () {
     Route::get('/minha-conta', 'showMyAccount')->name('home.minhaconta')->middleware('auth');
 });
 
+Route::put('/update' , [AuthController::class, 'update'])->name('account.update');
+
+
 Route::middleware(['auth'])->group(function () {
 
 //* rotas da parte da prova teorica

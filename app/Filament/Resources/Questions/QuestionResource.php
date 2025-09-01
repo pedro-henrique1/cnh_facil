@@ -22,6 +22,9 @@ class QuestionResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'Question';
 
+    protected static ?string $navigationLabel = 'Questões';
+
+
     public static function form(Schema $schema): Schema
     {
         return QuestionForm::configure($schema);

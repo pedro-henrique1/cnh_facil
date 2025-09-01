@@ -3,10 +3,83 @@
 @section('content')
 
     <div class="container py-4">
-        <h1 class="display-6 fw-bold text-dark mb-4">Olá, {{ $user->name }}!</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="display-6 fw-bold text-dark mb-0">Olá, {{ $user->name }}!</h1>
+            <div class="d-flex">
+                @if($user->is_admin)
+                    <a href="/admin" class="btn btn-outline-primary btn-lg me-3">
+                        Painel de Admin
+                    </a>
+                @endif
+                <button type="button" class="btn btn-outline-secondary me-3 btn-lg" data-bs-toggle="modal"
+                        data-bs-target="#accountModal">
+                    Conta
+                </button>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                        @csrf
+                    </form>
+
+                    <button class="btn btn-outline-danger btn-lg me-3" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        Sair
+                    </button>
+
+            </div>
+        </div>
+
+        <div class="modal fade" id="accountModal" tabindex="-1" aria-labelledby="accountModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form action="{{ route('account.update') }}" method="POST" class="modal-content">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="accountModalLabel">Informações da Conta</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Nome -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nome</label>
+                            <input type="text" name="name" id="name" class="form-control" value="{{ $user->name }}"
+                                   readonly>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" name="email" id="email" class="form-control" value="{{ $user->email }}"
+                                   readonly>
+                        </div>
+
+                        <!-- Senha -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Nova Senha</label>
+                            <input type="password" name="password" id="password" class="form-control"
+                                   placeholder="Deixe em branco para não alterar" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password_confirmation" class="form-label">Confirme a Senha</label>
+                            <input type="password" name="password_confirmation" id="password_confirmation"
+                                   class="form-control" placeholder="Confirme a nova senha" readonly>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <!-- Botão para habilitar edição -->
+                        <button type="button" id="editAccountBtn" class="btn btn-warning">Editar</button>
+                        <button type="submit" id="saveAccountBtn" class="btn btn-primary" style="display:none;">Salvar
+                            Alterações
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         {{-- Seção de Conquistas --}}
-        <h3 class="fs-4 fw-bold mb-3">🏅 Conquistas</h3>
+        <h3 class="fs-4 fw-bold mt-xl-5 mb-3">🏅 Conquistas</h3>
         <div class="d-flex flex-wrap gap-2 mb-4">
             @if($simulations->count() >= 1)
                 <span class="badge rounded-pill bg-success p-2">🥇 1º Simulado Feito</span>
@@ -75,7 +148,8 @@
                         <div class="card h-100 shadow-sm border-0">
                             <div class="card-body text-center">
                                 <h5 class="card-title fw-bold text-primary">{{ $userMission->mission->name }}</h5>
-                                <p class="card-text text-muted" style="min-height: 40px;">{{ $userMission->mission->description }}</p>
+                                <p class="card-text text-muted"
+                                   style="min-height: 40px;">{{ $userMission->mission->description }}</p>
 
                                 <div class="progress mt-3" style="height: 15px;">
                                     <div class="progress-bar bg-success" role="progressbar"
@@ -109,5 +183,17 @@
             @endforeach
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const editBtn = document.getElementById('editAccountBtn');
+            const saveBtn = document.getElementById('saveAccountBtn');
+            const inputs = document.querySelectorAll('#accountModal input');
 
+            editBtn.addEventListener('click', function () {
+                inputs.forEach(input => input.removeAttribute('readonly'));
+                editBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+            });
+        });
+    </script>
 @endsection

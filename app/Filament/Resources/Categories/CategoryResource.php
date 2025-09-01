@@ -20,7 +20,10 @@ class CategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'Category';
+    protected static ?string $recordTitleAttribute = 'Categor';
+
+    protected static ?string $navigationLabel = 'Categorias';
+
 
     public static function form(Schema $schema): Schema
     {

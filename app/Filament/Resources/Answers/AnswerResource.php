@@ -21,6 +21,8 @@ class AnswerResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'Answer';
+    protected static ?string $navigationLabel = 'Resposta';
+
 
     public static function form(Schema $schema): Schema
     {
