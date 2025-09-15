@@ -7,6 +7,8 @@
     <title>Detran Sem Autoescola</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
     @stack('styles')
 
     <style>
@@ -58,7 +60,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bgcolor">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="/">Detran Sem Autoescola</a>
+        <a class="navbar-brand fw-bold" href="/">CNH Fácil</a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
             <span class="navbar-toggler-icon"></span>
