@@ -19,14 +19,12 @@ jobs:
       - name: Login no Docker Hub
         uses: docker/login-action@v3
         with:
-          # O registro do Docker Hub é 'docker.io' (ou pode ser omitido, mas é bom ser explícito)
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }} # Seu novo segredo
           password: ${{ secrets.DOCKER_PASSWORD }} # Seu novo segredo (PAT)
 
       - name: Build e push da imagem Docker
         run: |
-          # Agora a imagem é nomeada como: seuusuario/meuapp:latest
           docker build -t ${{ secrets.DOCKER_USERNAME }}/meuapp:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
 
@@ -37,7 +35,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # O pull agora usa a imagem do Docker Hub
             docker pull ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
             docker stop meuapp || true
             docker rm meuapp || true
