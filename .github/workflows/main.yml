@@ -33,6 +33,7 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.DOCR_TOKEN }}
           key: ${{ secrets.SSH_KEY }}
           script: |
             docker pull ${{ secrets.DOCR_REGISTRY }}/meuapp:latest
