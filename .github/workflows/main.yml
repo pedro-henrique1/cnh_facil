@@ -26,8 +26,8 @@ jobs:
       - name: Build e push da imagem Docker
         run: |
           # Agora a imagem é nomeada como: seuusuario/meuapp:latest
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/meuapp:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
+          docker build -t henriquepedro/meuapp:latest .
+          docker push henriquepedro/meuapp:latest
 
       - name: Deploy na Droplet
         uses: appleboy/ssh-action@v1.2.0
