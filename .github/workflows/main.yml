@@ -26,7 +26,7 @@ jobs:
       - name: Build e push da imagem Docker
         run: |
           docker build -t ${{ secrets.DOCR_REGISTRY }}:latest .
-          docker push ${{ secrets.DOCR_REGISTRY }}/appcontainer:latest
+          docker push ${{ secrets.DOCR_REGISTRY }}:latest
 
       - name: Deploy na Droplet
         uses: appleboy/ssh-action@v1.2.0
