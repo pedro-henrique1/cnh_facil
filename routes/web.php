@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\dashboard\DashboardController;
+use App\Http\Controllers\SimulatedController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,12 +27,26 @@ Route::controller(DashboardController::class)->group(function () {
     Route::get('/minha-conta', 'showMyAccount')->name('home.minhaconta')->middleware('auth');
 });
 
-Route::put('/update' , [AuthController::class, 'update'])->name('account.update');
+Route::put('/update', [AuthController::class, 'update'])->name('account.update');
 
 
 Route::middleware(['auth'])->group(function () {
+    // Rota para gerar simulado teórico
+    Route::post('/theoretical/simulation/generate', [SimulatedController::class, 'generate'])
+        ->name('theoretical.simulation.generate');
 
-//* rotas da parte da prova teorica
+    // Rota para processar resposta
+    Route::post('/simulated/question/{questionNumber}/submit', [SimulatedController::class, 'submitAnswer'])
+        ->name('simulated.submit');
+    // Rota para exibir cada questão do simulado
+    Route::get('/simulated/question/{questionNumber}', [SimulatedController::class, 'showQuestion'])
+        ->name('simulated.show');
+
+    Route::get('/simulated/finish', [SimulatedController::class, 'finish'])
+        ->name('simulated.finish');
+
+
+    //* rotas da parte da prova teorica
     Route::get('/theoretical/information', function () {
         return view('theoretical_test.theoreticalTestInformation');
     })->name('theoretical.information');
@@ -44,8 +59,11 @@ Route::middleware(['auth'])->group(function () {
         return view('theoretical_test.simulationTheoreticalTest');
     })->name('theoretical.simulation');
 
+    Route::get('/simulado/{questionNumber}', [SimulatedController::class, 'showQuestion'])
+        ->name('simulated.show');
 
-//* rotas da parte da prova pratica
+
+    //* rotas da parte da prova pratica
     Route::get('/practical/information', function () {
         return view('practical_test.informationTestPractical');
     })->name('practical.information');

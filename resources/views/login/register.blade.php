@@ -32,7 +32,7 @@
             <div class="col-md-6">
                 <div class="card shadow-sm border-0 rounded-4 mt-5">
                     <div class="card-header bg-transparent border-bottom text-center">
-                        <h3 class="fw-bold text-primary">{{ __('Cadastro') }}</h3>
+                        <h3 class="fw-bold text-black">{{ __('Cadastro') }}</h3>
                         <p class="text-black small">Crie sua conta para acessar o sistema</p>
                     </div>
 
@@ -106,7 +106,7 @@
                     <div class="card-footer bg-transparent border-top text-center py-3">
                         <p class="small mb-0 text-muted">
                             Já tem uma conta?
-                            <a href="{{ route('login') }}" class="text-primary fw-medium text-decoration-none">
+                            <a href="{{ route('login') }}" class="text-black fw-medium text-decoration-none">
                                 Entrar <i class="fas fa-sign-in-alt ms-1"></i>
                             </a>
                         </p>
