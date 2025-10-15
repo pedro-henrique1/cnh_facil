@@ -31,14 +31,11 @@ Route::put('/update', [AuthController::class, 'update'])->name('account.update')
 
 
 Route::middleware(['auth'])->group(function () {
-    // Rota para gerar simulado teórico
     Route::post('/theoretical/simulation/generate', [SimulatedController::class, 'generate'])
         ->name('theoretical.simulation.generate');
 
-    // Rota para processar resposta
     Route::post('/simulated/question/{questionNumber}/submit', [SimulatedController::class, 'submitAnswer'])
         ->name('simulated.submit');
-    // Rota para exibir cada questão do simulado
     Route::get('/simulated/question/{questionNumber}', [SimulatedController::class, 'showQuestion'])
         ->name('simulated.show');
 
@@ -46,7 +43,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('simulated.finish');
 
 
-    //* rotas da parte da prova teorica
     Route::get('/theoretical/information', function () {
         return view('theoretical_test.theoreticalTestInformation');
     })->name('theoretical.information');
@@ -63,7 +59,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('simulated.show');
 
 
-    //* rotas da parte da prova pratica
     Route::get('/practical/information', function () {
         return view('practical_test.informationTestPractical');
     })->name('practical.information');

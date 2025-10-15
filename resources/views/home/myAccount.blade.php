@@ -140,31 +140,31 @@
         </div>
 
         {{-- Seção de Missões Ativas (já otimizada) --}}
-        @if($activeMissions->isNotEmpty())
-            <h2 class="fs-4 fw-bold mb-4">Missões Ativas</h2>
-            <div class="row g-4">
-                @foreach($activeMissions as $userMission)
-                    <div class="col-12 col-md-4">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body text-center">
-                                <h5 class="card-title fw-bold text-primary">{{ $userMission->mission->name }}</h5>
-                                <p class="card-text text-muted"
-                                   style="min-height: 40px;">{{ $userMission->mission->description }}</p>
+{{--        @if($activeMissions->isNotEmpty())--}}
+{{--            <h2 class="fs-4 fw-bold mb-4">Missões Ativas</h2>--}}
+{{--            <div class="row g-4">--}}
+{{--                @foreach($activeMissions as $userMission)--}}
+{{--                    <div class="col-12 col-md-4">--}}
+{{--                        <div class="card h-100 shadow-sm border-0">--}}
+{{--                            <div class="card-body text-center">--}}
+{{--                                <h5 class="card-title fw-bold text-primary">{{ $userMission->mission->name }}</h5>--}}
+{{--                                <p class="card-text text-muted"--}}
+{{--                                   style="min-height: 40px;">{{ $userMission->mission->description }}</p>--}}
 
-                                <div class="progress mt-3" style="height: 15px;">
-                                    <div class="progress-bar bg-success" role="progressbar"
-                                         style="width: {{ $userMission->current_progress }}%;"
-                                         aria-valuenow="{{ $userMission->current_progress }}"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @endif
+{{--                                <div class="progress mt-3" style="height: 15px;">--}}
+{{--                                    <div class="progress-bar bg-success" role="progressbar"--}}
+{{--                                         style="width: {{ $userMission->current_progress }}%;"--}}
+{{--                                         aria-valuenow="{{ $userMission->current_progress }}"--}}
+{{--                                         aria-valuemin="0"--}}
+{{--                                         aria-valuemax="100">--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
+{{--                @endforeach--}}
+{{--            </div>--}}
+{{--        @endif--}}
 
         {{-- Seção de Simulados Realizados --}}
         <h2 class="fs-4 fw-bold mt-5 mb-4">Simulados Realizados</h2>

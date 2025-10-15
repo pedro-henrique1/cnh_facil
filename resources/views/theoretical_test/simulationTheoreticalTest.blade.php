@@ -9,7 +9,7 @@
             </div>
 
             <div class="row g-4 justify-content-center">
-                {{-- Card de Simulado de Sinalização --}}
+                {{-- Card de Simulado de Sinalização (ID: 6) --}}
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0 rounded-4">
                         <div class="card-body p-4 text-center">
@@ -21,18 +21,20 @@
                                 Questões</span>
                             <span class="badge bg-info-subtle text-info mb-3 ms-2"><i class="bi bi-clock me-1"></i> 30
                                 Minutos</span>
+
+                            {{-- CORRIGIDO: O botão SUBSTITUI o link e está DENTRO do form --}}
                             <form action="{{ route('theoretical.simulation.generate') }}" method="POST">
                                 @csrf
-                                <input type="hidden" name="num_questions" value="10">
-                                <input type="hidden" name="category_id" value="6">
-                            <a href="#" class="btn btn-info w-100 mt-3 rounded-pill">Iniciar Simulado <i
-                                    class="bi bi-arrow-right ms-2"></i></a>
+                                <input type="hidden" name="num_questions" value="20"> <input type="hidden" name="category_id" value="6">
+                                <button type="submit" class="btn btn-info w-100 mt-3 rounded-pill">
+                                    Iniciar Simulado <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
 
-                {{-- Card de Simulado de Legislação de Trânsito --}}
+                {{-- Card de Simulado de Legislação de Trânsito (ID: 2) --}}
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0 rounded-4">
                         <div class="card-body p-4 text-center">
@@ -44,18 +46,20 @@
                                     class="bi bi-question-circle me-1"></i> 30 Questões</span>
                             <span class="badge bg-info-subtle text-info mb-3 ms-2"><i class="bi bi-clock me-1"></i> 40
                                 Minutos</span>
+
+                            {{-- CORRIGIDO: O botão SUBSTITUI o link e está DENTRO do form --}}
                             <form action="{{ route('theoretical.simulation.generate') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="num_questions" value="10">
-                                    <input type="hidden" name="category_id" value="2">
-                                <a href="#" class="btn btn-primary w-100 mt-3 rounded-pill">Iniciar Simulado <i
-                                        class="bi bi-arrow-right ms-2"></i></a>
+                                @csrf
+                                <input type="hidden" name="num_questions" value="30"> <input type="hidden" name="category_id" value="2">
+                                <button type="submit" class="btn btn-primary w-100 mt-3 rounded-pill">
+                                    Iniciar Simulado <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
 
-                {{-- Card de Simulado de Direção Defensiva --}}
+                {{-- Card de Simulado de Direção Defensiva (ID: 3) --}}
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0 rounded-4">
                         <div class="card-body p-4 text-center">
@@ -66,18 +70,20 @@
                                     class="bi bi-question-circle me-1"></i> 15 Questões</span>
                             <span class="badge bg-info-subtle text-info mb-3 ms-2"><i class="bi bi-clock me-1"></i> 20
                                 Minutos</span>
+
+                            {{-- CORRIGIDO: O botão SUBSTITUI o link e está DENTRO do form --}}
                             <form action="{{ route('theoretical.simulation.generate') }}" method="POST">
                                 @csrf
-                                <input type="hidden" name="num_questions" value="10">
-                                <input type="hidden" name="category_id" value="3">
-                                <a href="#" class="btn btn-success w-100 mt-3 rounded-pill">Iniciar Simulado <i
-                                        class="bi bi-arrow-right ms-2"></i></a>
+                                <input type="hidden" name="num_questions" value="15"> <input type="hidden" name="category_id" value="3">
+                                <button type="submit" class="btn btn-success w-100 mt-3 rounded-pill">
+                                    Iniciar Simulado <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
 
-                {{-- Card de Simulado de Mecânica Básica --}}
+                {{-- Card de Simulado de Mecânica Básica (ID: 4) --}}
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0 rounded-4">
                         <div class="card-body p-4 text-center">
@@ -89,19 +95,21 @@
                                     class="bi bi-question-circle me-1"></i> 10 Questões</span>
                             <span class="badge bg-info-subtle text-info mb-3 ms-2"><i class="bi bi-clock me-1"></i> 15
                                 Minutos</span>
+
+                            {{-- CORRIGIDO: O botão SUBSTITUI o link e está DENTRO do form --}}
                             <form action="{{ route('theoretical.simulation.generate') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="num_questions" value="10">
                                 <input type="hidden" name="category_id" value="4">
-                            <a href="#" class="btn btn-warning w-100 mt-3 rounded-pill">Iniciar Simulado <i
-                                    class="bi bi-arrow-right ms-2"></i></a>
-
+                                <button type="submit" class="btn btn-warning w-100 mt-3 rounded-pill">
+                                    Iniciar Simulado <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
 
-                {{-- Card de Simulado de Primeiros Socorros --}}
+                {{-- Card de Simulado de Primeiros Socorros (ID: 5) --}}
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0 rounded-4">
                         <div class="card-body p-4 text-center">
@@ -112,11 +120,12 @@
                                 10 Questões</span>
                             <span class="badge bg-info-subtle text-info mb-3 ms-2"><i class="bi bi-clock me-1"></i> 15
                                 Minutos</span>
+
+                            {{-- JÁ ESTAVA CORRETO, APENAS REVISADO --}}
                             <form action="{{ route('theoretical.simulation.generate') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="num_questions" value="10">
                                 <input type="hidden" name="category_id" value="5">
-
                                 <button type="submit" class="btn btn-danger w-100 mt-3 rounded-pill">
                                     Iniciar Simulado <i class="bi bi-arrow-right ms-2"></i>
                                 </button>

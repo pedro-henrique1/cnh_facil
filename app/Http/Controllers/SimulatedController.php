@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\History;
 use App\Models\Question;
 use App\Models\Answer;
 use Carbon\Carbon;
@@ -9,6 +10,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SimulatedController extends Controller
 {
@@ -16,26 +18,20 @@ class SimulatedController extends Controller
     {
         $numQuestions = $request->input('num_questions', 30);
 
-        // 1. Capture o ID da categoria (assumindo que ele vem do formulário)
         $categoryId = $request->input('category_id');
 
-        // 2. Inicia a query do modelo Question
-        $query = Question::query(); // Comece com Question::query() ou Question::
+        $query = Question::query();
 
         if ($categoryId) {
             $query->where('category_id', $categoryId);
 
-            // Se quisesse permitir múltiplos IDs (ex: checkbox), usaria:
-            // $query->whereIn('category_id', (array)$categoryId);
         }
 
-        // 4. Conclui a query com ordenação, limite e plucking
-        $questionIds = $query->inRandomOrder() // Aplica o filtro e depois ordena aleatoriamente
+        $questionIds = $query->inRandomOrder()
         ->limit($numQuestions)
             ->pluck('id')
             ->toArray();
 
-        // [Opcional] Verificação se não encontrou questões, para dar feedback ao usuário
         if (empty($questionIds) && $categoryId) {
             return back()->with('error', 'Nenhuma questão encontrada para a categoria selecionada.');
         }
@@ -145,14 +141,20 @@ class SimulatedController extends Controller
         $attempts = session('simulated_attempts', []);
 
         $timeTaken = '00:00';
+        $elapsedSeconds = 0;
+        $timeSpentDB = '00:00:00';
         if ($startTime) {
-            if (!($startTime instanceof Carbon)) {
-                $startTime = Carbon::parse($startTime);
-            }
+            $startTime = Carbon::parse($startTime);
             $elapsedSeconds = $startTime->diffInSeconds(now());
+
             $minutes = floor($elapsedSeconds / 60);
             $seconds = $elapsedSeconds % 60;
             $timeTaken = sprintf('%02d:%02d', $minutes, $seconds);
+
+            $hours = floor($elapsedSeconds / 3600);
+            $dbMinutes = floor(($elapsedSeconds % 3600) / 60);
+            $dbSeconds = $elapsedSeconds % 60;
+            $timeSpentDB = sprintf('%02d:%02d:%02d', $hours, $dbMinutes, $dbSeconds);
         }
 
         $correctAnswers = 0;
@@ -180,6 +182,20 @@ class SimulatedController extends Controller
         $percentage = $totalQuestions > 0 ? ($correctAnswers / $totalQuestions) * 100 : 0;
         $passed = $percentage >= 70;
 
+        $scoreMultiplier = 5;
+        $finalScore = $correctAnswers * $scoreMultiplier;
+
+        if (Auth::check()) {
+            History::create([
+                'user_id' => Auth::id(),
+                'total_questions' => $totalQuestions,
+                'correct_answers' => $correctAnswers,
+                'score' => $finalScore,
+                'passed' => $passed,
+                'time_spent' => $timeSpentDB,
+            ]);
+        }
+
         session()->forget([
             'simulated_question_ids',
             'simulated_current',
@@ -192,7 +208,7 @@ class SimulatedController extends Controller
             'correctAnswers' => $correctAnswers,
             'wrongAnswers' => $wrongAnswers,
             'unanswered' => $unanswered,
-            'score' => $correctAnswers,
+            'score' => $finalScore,
             'percentage' => round($percentage, 2),
             'passed' => $passed,
             'timeTaken' => $timeTaken,

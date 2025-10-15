@@ -12,31 +12,20 @@ class History extends Model
 
     use HasFactory;
 
-    // Define quais colunas podem ser preenchidas massivamente
     protected $fillable = [
         'user_id',
-        'question_id',
         'category_id',
         'score',
         'time_spent',
+        'total_questions',
+        'correct_answers',
+        'passed',
     ];
-
-    // Relacionamento com o usuário que respondeu a pergunta
-    // Uma 'History' pertence a um 'User'
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    // Relacionamento com a pergunta que foi respondida
-    // Uma 'History' pertence a uma 'Question'
-    public function question(): BelongsTo
-    {
-        return $this->belongsTo(Question::class);
-    }
-
-    // Relacionamento com a categoria da pergunta
-    // Uma 'History' pertence a uma 'Category'
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
