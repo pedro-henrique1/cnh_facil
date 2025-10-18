@@ -28,7 +28,6 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/meuapp:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
 
-
       - name: Deploy na Droplet
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -36,8 +35,13 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
+            docker stop meuapp || true
+            docker rm meuapp || true
+            docker run -d --name meuapp -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
             DEPLOY_DIR="/opt/meuapp"
             mkdir -p $DEPLOY_DIR
             cd $DEPLOY_DIR
             docker compose down || true
             docker compose up -d --build
+
