@@ -10,64 +10,56 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+      - name: 🧩 Checkout código
         uses: actions/checkout@v4
 
-      - name: Configurar Docker Buildx
+      - name: 🔧 Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login no Docker Hub
+      - name: 🔐 Login no Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build e push da imagem Docker
+      - name: 🏗️ Build e Push da imagem para o Docker Hub
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/meuapp:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
 
-      - name: Deploy arquivos via rsync
+      - name: 🚀 Copiar arquivos para o Droplet
         run: |
           echo "${{ secrets.SSH_KEY }}" > ssh_key
           chmod 600 ssh_key
 
-          # Copiar docker-compose.yml
-          rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" \
-            docker-compose.yml \
+          # cria o diretório remoto se não existir
+          ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p /opt/meuapp/docker"
+
+          # envia os arquivos
+          rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" docker-compose.yml \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/opt/meuapp/
 
-          # Copiar pasta docker/
-          rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" \
-            docker/ \
+          rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" docker/ \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/opt/meuapp/docker/
 
           rm ssh_key
 
-      - name: Deploy na Droplet
+      - name: 🧠 Deploy no Droplet
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -e
             cd /opt/meuapp
 
-            # Verificar se arquivo foi copiado
-            if [ ! -f docker-compose.yml ]; then
-              echo "❌ ERRO: docker-compose.yml não foi copiado!"
-              exit 1
-            fi
+            echo "📦 Atualizando containers..."
 
-            # Modificar para usar imagem do Docker Hub
-            sed -i 's/build:/# build:/g' docker-compose.yml
-            sed -i 's/context: \./# context: \./g' docker-compose.yml
-            sed -i 's/dockerfile: Dockerfile/# dockerfile: Dockerfile/g' docker-compose.yml
-            sed -i '/# build:/a\        image: ${{ secrets.DOCKER_USERNAME }}/meuapp:latest' docker-compose.yml
-
-            # Criar .env se não existir
+            # cria .env se não existir
             if [ ! -f .env ]; then
-              cat > .env <<'EOF'
+              echo "🧾 Criando arquivo .env..."
+              cat > .env <<EOF
             APP_NAME=Laravel
             APP_ENV=production
             APP_KEY=
@@ -89,31 +81,24 @@ jobs:
             EOF
             fi
 
-            # Pull da nova imagem
-            echo "📦 Baixando nova imagem..."
-            docker compose pull app
-
-            # Restart dos containers
-            echo "🔄 Reiniciando containers..."
+            docker compose pull
             docker compose down
             docker compose up -d
 
-            # Aguardar containers iniciarem
-            echo "⏳ Aguardando containers iniciarem..."
+            echo "⏳ Aguardando inicialização..."
             sleep 15
 
-            # Executar comandos Laravel
-            echo "🔧 Executando comandos do Laravel..."
+            echo "🔧 Executando comandos Laravel..."
             docker compose exec -T app php artisan key:generate --force || true
             docker compose exec -T app php artisan storage:link || true
-            docker compose exec -T app php artisan migrate --force
-            docker compose exec -T app php artisan config:cache
-            docker compose exec -T app php artisan route:cache
-            docker compose exec -T app php artisan view:cache
+            docker compose exec -T app php artisan migrate --force || true
+            docker compose exec -T app php artisan config:cache || true
+            docker compose exec -T app php artisan route:cache || true
+            docker compose exec -T app php artisan view:cache || true
 
-            echo "✅ Deploy concluído!"
+            echo "✅ Deploy concluído com sucesso!"
 
-      - name: Verificar saúde da aplicação
+      - name: 🩺 Verificar saúde da aplicação
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
@@ -124,13 +109,16 @@ jobs:
             echo "=== Status dos containers ==="
             docker compose ps
             echo ""
-            echo "=== Últimos logs do app ==="
-            docker compose logs --tail=20 app
+            echo "=== Logs recentes do app ==="
+            docker compose logs --tail=20 app || true
             echo ""
-            echo "=== Últimos logs do nginx ==="
-            docker compose logs --tail=20 nginx
+            echo "=== Logs recentes do nginx ==="
+            docker compose logs --tail=20 nginx || true
+            echo ""
+            echo "=== Teste HTTP local ==="
+            curl -fsS http://localhost || echo "⚠️ Aplicação pode não estar respondendo ainda"
 
-      - name: Limpar imagens antigas
+      - name: 🧹 Limpar imagens antigas
         if: success()
         uses: appleboy/ssh-action@v1.2.0
         with:

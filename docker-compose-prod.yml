@@ -1,23 +1,32 @@
 version: '3.8'
 
 services:
-  # image project
+  # App (Laravel + PHP)
   app:
     image: ${DOCKER_USERNAME}/meuapp:latest
+    container_name: laravel-app
     restart: unless-stopped
-    working_dir: /var/www/
+    working_dir: /var/www
     depends_on:
       - redis
       - db
     networks:
       - laravel
     environment:
-      - DB_HOST=db
-      - REDIS_HOST=redis
+      APP_ENV: production
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE:-laravel}
+      DB_USERNAME: ${DB_USERNAME:-username}
+      DB_PASSWORD: ${DB_PASSWORD:-userpass}
+      REDIS_HOST: redis
+    volumes:
+      - code-volume:/var/www
+      # se sua imagem já contém o código (copiado no Dockerfile), pode remover o volume acima
 
-  # nginx
+  # Nginx (proxy reverso)
   nginx:
     image: nginx:alpine
+    container_name: laravel-nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -29,9 +38,10 @@ services:
     networks:
       - laravel
 
-  # db mysql
+  # MySQL
   db:
     image: mysql:8.0
+    container_name: laravel-db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-laravel}
@@ -42,13 +52,14 @@ services:
       - mysql-data:/var/lib/mysql
     ports:
       - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
     networks:
       - laravel
-    command: --default-authentication-plugin=mysql_native_password
 
-  # redis
+  # Redis
   redis:
     image: redis:latest
+    container_name: laravel-redis
     restart: unless-stopped
     volumes:
       - redis-data:/data
