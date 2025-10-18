@@ -27,15 +27,22 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/meuapp:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
 
-      - name: Copiar arquivos para o servidor
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "docker-compose.prod.yml,docker/nginx/"
-          target: "/opt/meuapp"
-          strip_components: 0
+      - name: Deploy arquivos via rsync
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > ssh_key
+          chmod 600 ssh_key
+
+          # Copiar docker-compose.prod.yml
+          rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" \
+            docker-compose.prod.yml \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/opt/meuapp/
+
+          # Copiar pasta docker/
+          rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" \
+            docker/ \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/opt/meuapp/docker/
+
+          rm ssh_key
 
       - name: Deploy na Droplet
         uses: appleboy/ssh-action@v1.2.0
@@ -46,17 +53,23 @@ jobs:
           script: |
             cd /opt/meuapp
 
-            # Renomear arquivo de compose
+            # Verificar se arquivo foi copiado
+            if [ ! -f docker-compose.prod.yml ]; then
+              echo "❌ ERRO: docker-compose.prod.yml não foi copiado!"
+              exit 1
+            fi
+
+            # Renomear docker-compose
             mv docker-compose.prod.yml docker-compose.yml
 
             # Criar .env se não existir
             if [ ! -f .env ]; then
-              cat > .env <<EOF
+              cat > .env <<'EOF'
             APP_NAME=Laravel
             APP_ENV=production
             APP_KEY=
             APP_DEBUG=false
-            APP_URL=http://localhost
+            APP_URL=http://seu-dominio.com
 
             DB_CONNECTION=mysql
             DB_HOST=db
@@ -74,27 +87,28 @@ jobs:
             fi
 
             # Pull da nova imagem
+            echo "📦 Baixando nova imagem..."
             docker compose pull app
 
-            # Copiar arquivos estáticos do container para o volume
-            docker compose up -d app
-            CONTAINER_ID=$(docker compose ps -q app)
-            docker cp $CONTAINER_ID:/var/www/. /opt/meuapp/static/
-
-            # Restart completo
+            # Restart dos containers
+            echo "🔄 Reiniciando containers..."
             docker compose down
             docker compose up -d
 
             # Aguardar containers iniciarem
-            sleep 10
+            echo "⏳ Aguardando containers iniciarem..."
+            sleep 15
 
             # Executar comandos Laravel
+            echo "🔧 Executando comandos do Laravel..."
             docker compose exec -T app php artisan key:generate --force || true
+            docker compose exec -T app php artisan storage:link || true
+            docker compose exec -T app php artisan migrate --force
             docker compose exec -T app php artisan config:cache
             docker compose exec -T app php artisan route:cache
             docker compose exec -T app php artisan view:cache
-            docker compose exec -T app php artisan migrate --force
-            docker compose exec -T app php artisan storage:link
+
+            echo "✅ Deploy concluído!"
 
       - name: Verificar saúde da aplicação
         uses: appleboy/ssh-action@v1.2.0
@@ -107,13 +121,14 @@ jobs:
             echo "=== Status dos containers ==="
             docker compose ps
             echo ""
-            echo "=== Logs do app (últimas 20 linhas) ==="
+            echo "=== Últimos logs do app ==="
             docker compose logs --tail=20 app
             echo ""
-            echo "=== Logs do nginx (últimas 20 linhas) ==="
+            echo "=== Últimos logs do nginx ==="
             docker compose logs --tail=20 nginx
 
       - name: Limpar imagens antigas
+        if: success()
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
