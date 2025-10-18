@@ -2,7 +2,8 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\dashboard\DashboardController;
-use App\Http\Controllers\SimulatedController;
+use App\Http\Controllers\pratical\PracticalTestController;
+use App\Http\Controllers\theorical\TheoreticalTestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -31,17 +32,39 @@ Route::put('/update', [AuthController::class, 'update'])->name('account.update')
 
 
 Route::middleware(['auth'])->group(function () {
-    Route::post('/theoretical/simulation/generate', [SimulatedController::class, 'generate'])
-        ->name('theoretical.simulation.generate');
+    // ========================================
+    // TESTE TEÓRICO
+    // ========================================
+    Route::prefix('theoretical')->name('theoretical.')->group(function () {
+        Route::post('generate', [TheoreticalTestController::class, 'generate'])
+            ->name('simulation.generate');
 
-    Route::post('/simulated/question/{questionNumber}/submit', [SimulatedController::class, 'submitAnswer'])
+        Route::get('question/{questionNumber}', [TheoreticalTestController::class, 'showQuestion'])
+            ->name('show');
+        Route::get('finish', [TheoreticalTestController::class, 'finish'])
+            ->name('simulated.finish');
+    });
+    Route::post('question/{questionNumber}/submit', [TheoreticalTestController::class, 'submitAnswer'])
         ->name('simulated.submit');
-    Route::get('/simulated/question/{questionNumber}', [SimulatedController::class, 'showQuestion'])
-        ->name('simulated.show');
 
-    Route::get('/simulated/finish', [SimulatedController::class, 'finish'])
-        ->name('simulated.finish');
 
+    // ========================================
+    // TESTE PRÁTICO
+    // ========================================
+    Route::prefix('practical')->name('practical.')->group(function () {
+        // Rota para INICIAR/GERAR o simulado
+        Route::post('generate', [PracticalTestController::class, 'generate'])
+            ->name('simulation.generate');
+
+        Route::get('question/{questionNumber}', [PracticalTestController::class, 'showQuestion'])
+            ->name('show');
+
+        Route::post('question/{questionNumber}/submit', [PracticalTestController::class, 'submitAnswer'])
+            ->name('simulation.submit'); // Nome completo: 'practical.simulation.submit'
+
+        Route::get('finish', [PracticalTestController::class, 'finish'])
+            ->name('finish');
+    });
 
     Route::get('/theoretical/information', function () {
         return view('theoretical_test.theoreticalTestInformation');
@@ -55,9 +78,9 @@ Route::middleware(['auth'])->group(function () {
         return view('theoretical_test.simulationTheoreticalTest');
     })->name('theoretical.simulation');
 
-    Route::get('/simulado/{questionNumber}', [SimulatedController::class, 'showQuestion'])
-        ->name('simulated.show');
-
+    /**
+     * rotas referentes a geração de testes praticos e telas pra essa seção
+     */
 
     Route::get('/practical/information', function () {
         return view('practical_test.informationTestPractical');

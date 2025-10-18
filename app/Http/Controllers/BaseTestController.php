@@ -11,14 +11,39 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class SimulatedController extends Controller
+abstract class BaseTestController extends Controller
 {
-    private const TIME_LIMIT_MINUTES = 40;
-    private const PASSING_PERCENTAGE = 70;
-    private const SCORE_MULTIPLIER = 5;
+    protected const TIME_LIMIT_MINUTES = 40;
+    protected const PASSING_PERCENTAGE = 70;
+    protected const SCORE_MULTIPLIER = 5;
 
     /**
-     * Gera e inicia um novo simulado
+     * Prefixo da sessão (deve ser sobrescrito nas classes filhas)
+     */
+    abstract protected function getSessionPrefix(): string;
+
+    /**
+     * Nome da rota para exibir questão (deve ser sobrescrito)
+     */
+    abstract protected function getShowRouteName(): string;
+
+    /**
+     * Nome da rota para finalizar (deve ser sobrescrito)
+     */
+    abstract protected function getFinishRouteName(): string;
+
+    /**
+     * Nome da view para exibir questão (deve ser sobrescrito)
+     */
+    abstract protected function getQuestionViewName(): string;
+
+    /**
+     * Nome da view para exibir resultado (deve ser sobrescrito)
+     */
+    abstract protected function getFinishViewName(): string;
+
+    /**
+     * Gera e inicia um novo teste
      */
     public function generate(Request $request): RedirectResponse
     {
@@ -36,20 +61,100 @@ class SimulatedController extends Controller
             return back()->with('error', 'Nenhuma questão encontrada para a categoria selecionada.');
         }
 
-        $this->initializeSimulatedSession($questions);
+        $this->initializeTestSession($questions);
 
         $firstQuestionId = $questions->first()->id_question;
 
-        return redirect()->route('simulated.show', ['questionNumber' => $firstQuestionId]);
+        return redirect()->route($this->getShowRouteName(), ['questionNumber' => $firstQuestionId]);
+    }
+
+    /**
+     * Exibe a questão pelo id_question
+     */
+    public function showQuestion(string $questionNumber): Factory|View|RedirectResponse
+    {
+        $questionData = $this->getQuestionByIdQuestion($questionNumber);
+
+        if (!$questionData) {
+            return redirect()->route($this->getFinishRouteName());
+        }
+
+        ['question' => $question, 'currentIndex' => $currentIndex, 'sessionData' => $sessionData] = $questionData;
+
+        $remainingTime = $this->calculateRemainingTime($sessionData['start_time']);
+
+        if ($remainingTime === null) {
+            return redirect()->route($this->getFinishRouteName());
+        }
+
+        $currentQuestionNumber = $currentIndex + 1;
+        $totalQuestions = count($sessionData['question_ids_list']);
+        $nextQuestionId = $sessionData['question_ids_list'][$currentIndex + 1] ?? null;
+
+        return view($this->getQuestionViewName(), [
+            'question' => $question,
+            'answers' => $question->answers,
+            'currentQuestionNumber' => $currentQuestionNumber,
+            'totalQuestions' => $totalQuestions,
+            'remainingTime' => $remainingTime,
+            'progress' => $this->calculateProgress($currentQuestionNumber, $totalQuestions),
+            'answeredQuestions' => count($sessionData['attempts']),
+            'nextQuestionId' => $nextQuestionId,
+        ]);
+    }
+
+    /**
+     * Processa a resposta da questão pelo id_question
+     */
+    public function submitAnswer(Request $request, string $questionNumber): RedirectResponse
+    {
+        $validated = $request->validate([
+            'answer_index' => 'required|integer|min:0|max:3'
+        ]);
+
+        $questionData = $this->getQuestionByIdQuestion($questionNumber);
+
+        if (!$questionData) {
+            return redirect()->route($this->getFinishRouteName());
+        }
+
+        ['question' => $question, 'currentIndex' => $currentIndex, 'sessionData' => $sessionData] = $questionData;
+
+        $isCorrect = $this->validateAnswer($question, $validated['answer_index']);
+
+        $this->saveAttempt($questionNumber, $question->id, $validated['answer_index'], $isCorrect);
+
+        return $this->redirectToNextQuestion($currentIndex, $sessionData['question_ids_list']);
+    }
+
+    /**
+     * Finaliza o teste e exibe resultados
+     */
+    public function finish(): Factory|View|RedirectResponse
+    {
+        $sessionData = $this->getTestSessionData();
+
+        if (empty($sessionData['question_ids_list'])) {
+            return redirect()->route('home')->with('error', 'Nenhum teste em andamento.');
+        }
+
+        $results = $this->calculateResults($sessionData);
+
+        if (Auth::check()) {
+            $this->saveHistory($results);
+        }
+
+        $this->clearTestSession();
+
+        return view($this->getFinishViewName(), $results);
     }
 
     /**
      * Busca questão pelo id_question e valida sessão
-     * Retorna array com question, currentIndex e sessionData ou null
      */
-    private function getQuestionByIdQuestion(string $questionNumber): ?array
+    protected function getQuestionByIdQuestion(string $questionNumber): ?array
     {
-        $sessionData = $this->getSimulatedSessionData();
+        $sessionData = $this->getTestSessionData();
 
         if (empty($sessionData['question_ids_list'])) {
             return null;
@@ -75,92 +180,15 @@ class SimulatedController extends Controller
     }
 
     /**
-     * Exibe a questão pelo id_question
-     */
-    public function showQuestion(string $questionNumber): Factory|View|RedirectResponse
-    {
-        $questionData = $this->getQuestionByIdQuestion($questionNumber);
-
-        if (!$questionData) {
-            return redirect()->route('simulated.finish');
-        }
-
-        ['question' => $question, 'currentIndex' => $currentIndex, 'sessionData' => $sessionData] = $questionData;
-
-        $remainingTime = $this->calculateRemainingTime($sessionData['start_time']);
-
-        if ($remainingTime === null) {
-            return redirect()->route('simulated.finish');
-        }
-
-        $currentQuestionNumber = $currentIndex + 1;
-        $totalQuestions = count($sessionData['question_ids_list']);
-        $nextQuestionId = $sessionData['question_ids_list'][$currentIndex + 1] ?? null;
-
-        return view('theoretical_test.theoricalTestPage', [
-            'question' => $question,
-            'answers' => $question->answers,
-            'currentQuestionNumber' => $currentQuestionNumber,
-            'totalQuestions' => $totalQuestions,
-            'remainingTime' => $remainingTime,
-            'progress' => $this->calculateProgress($currentQuestionNumber, $totalQuestions),
-            'answeredQuestions' => count($sessionData['attempts']),
-            'nextQuestionId' => $nextQuestionId,
-        ]);
-    }
-
-    /**
-     * Processa a resposta da questão pelo id_question
-     */
-    public function submitAnswer(Request $request, string $questionNumber): RedirectResponse
-    {
-        $validated = $request->validate([
-            'answer_index' => 'required|integer|min:0|max:3'
-        ]);
-
-        $questionData = $this->getQuestionByIdQuestion($questionNumber);
-
-        if (!$questionData) {
-            return redirect()->route('simulated.finish');
-        }
-
-        ['question' => $question, 'currentIndex' => $currentIndex, 'sessionData' => $sessionData] = $questionData;
-
-        $isCorrect = $this->validateAnswer($question, $validated['answer_index']);
-
-        $this->saveAttempt($questionNumber, $question->id, $validated['answer_index'], $isCorrect);
-
-        return $this->redirectToNextQuestion($currentIndex, $sessionData['question_ids_list']);
-    }
-
-    /**
-     * Finaliza o simulado e exibe resultados
-     */
-    public function finish(): Factory|View|RedirectResponse
-    {
-        $sessionData = $this->getSimulatedSessionData();
-
-        if (empty($sessionData)) {
-            return redirect()->route('home')->with('error', 'Nenhum simulado em andamento.');
-        }
-
-        $results = $this->calculateResults($sessionData);
-
-        if (Auth::check()) {
-            $this->saveHistory($results);
-        }
-
-        $this->clearSimulatedSession();
-
-        return view('simulated.finish', $results);
-    }
-
-    /**
      * Obtém questões aleatórias
      */
-    private function getRandomQuestions(int $limit, ?int $categoryId = null)
+    protected function getRandomQuestions(int $limit, ?int $categoryId = null)
     {
+        $questionType = $this->getQuestionType();
+
         $query = Question::query();
+
+        $query->where('type', $questionType->value);
 
         if ($categoryId) {
             $query->where('category_id', $categoryId);
@@ -171,40 +199,43 @@ class SimulatedController extends Controller
             ->get(['id', 'id_question', 'question', 'category_id']);
     }
 
-
     /**
      * Inicializa dados na sessão
      */
-    private function initializeSimulatedSession($questions): void
+    protected function initializeTestSession($questions): void
     {
+        $prefix = $this->getSessionPrefix();
+
         session([
-            'simulated_question_ids_list' => $questions->pluck('id_question')->toArray(),
-            'simulated_question_ids' => $questions->pluck('id')->toArray(),
-            'simulated_attempts' => [],
-            'simulated_start_time' => now(),
+            "{$prefix}_question_ids_list" => $questions->pluck('id_question')->toArray(),
+            "{$prefix}_question_ids" => $questions->pluck('id')->toArray(),
+            "{$prefix}_attempts" => [],
+            "{$prefix}_start_time" => now(),
         ]);
     }
 
     /**
-     * Obtém dados da sessão do simulado
+     * Obtém dados da sessão do teste
      */
-    private function getSimulatedSessionData(): array
+    protected function getTestSessionData(): array
     {
+        $prefix = $this->getSessionPrefix();
+
         return [
-            'question_ids_list' => session('simulated_question_ids_list', []),
-            'question_ids' => session('simulated_question_ids', []),
-            'attempts' => session('simulated_attempts', []),
-            'start_time' => session('simulated_start_time'),
+            'question_ids_list' => session("{$prefix}_question_ids_list", []),
+            'question_ids' => session("{$prefix}_question_ids", []),
+            'attempts' => session("{$prefix}_attempts", []),
+            'start_time' => session("{$prefix}_start_time"),
         ];
     }
 
     /**
-     * Calcula tempo restante do simulado
+     * Calcula tempo restante do teste
      */
-    private function calculateRemainingTime($startTime): ?string
+    protected function calculateRemainingTime($startTime): ?string
     {
         if (!$startTime) {
-            return sprintf('%02d:00', self::TIME_LIMIT_MINUTES);
+            return sprintf('%02d:00', static::TIME_LIMIT_MINUTES);
         }
 
         if (!($startTime instanceof Carbon)) {
@@ -212,11 +243,11 @@ class SimulatedController extends Controller
         }
 
         $elapsedSeconds = $startTime->diffInSeconds(now());
-        $totalSeconds = self::TIME_LIMIT_MINUTES * 60;
+        $totalSeconds = static::TIME_LIMIT_MINUTES * 60;
         $remainingSeconds = max(0, $totalSeconds - $elapsedSeconds);
 
         if ($remainingSeconds === 0) {
-            return null; // Tempo esgotado
+            return null;
         }
 
         $minutes = floor($remainingSeconds / 60);
@@ -226,9 +257,9 @@ class SimulatedController extends Controller
     }
 
     /**
-     * Calcula progresso do simulado
+     * Calcula progresso do teste
      */
-    private function calculateProgress(int $current, int $total): float
+    protected function calculateProgress(int $current, int $total): float
     {
         return $total > 0 ? round(($current / $total) * 100, 1) : 0;
     }
@@ -236,7 +267,7 @@ class SimulatedController extends Controller
     /**
      * Valida se a resposta está correta
      */
-    private function validateAnswer(Question $question, int $answerIndex): bool
+    protected function validateAnswer(Question $question, int $answerIndex): bool
     {
         $answer = $question->answers->first();
         if (!$answer || empty($answer->answer_text)) {
@@ -254,13 +285,13 @@ class SimulatedController extends Controller
         return !empty($allAnswers[$answerIndex]['is_correct']);
     }
 
-
     /**
-     * Salva tentativa na sessão (usando id_question como chave)
+     * Salva tentativa na sessão
      */
-    private function saveAttempt(string $questionIdField, int $questionId, int $answerIndex, bool $isCorrect): void
+    protected function saveAttempt(string $questionIdField, int $questionId, int $answerIndex, bool $isCorrect): void
     {
-        $attempts = session('simulated_attempts', []);
+        $prefix = $this->getSessionPrefix();
+        $attempts = session("{$prefix}_attempts", []);
 
         $attempts[$questionIdField] = [
             'question_id' => $questionId,
@@ -270,28 +301,28 @@ class SimulatedController extends Controller
             'answered_at' => now(),
         ];
 
-        session(['simulated_attempts' => $attempts]);
+        session(["{$prefix}_attempts" => $attempts]);
     }
 
     /**
      * Redireciona para próxima questão ou finaliza
      */
-    private function redirectToNextQuestion(int $currentIndex, array $questionIdsList): RedirectResponse
+    protected function redirectToNextQuestion(int $currentIndex, array $questionIdsList): RedirectResponse
     {
         $nextIndex = $currentIndex + 1;
 
         if ($nextIndex < count($questionIdsList)) {
             $nextIdQuestion = $questionIdsList[$nextIndex];
-            return redirect()->route('simulated.show', ['questionNumber' => $nextIdQuestion]);
+            return redirect()->route($this->getShowRouteName(), ['questionNumber' => $nextIdQuestion]);
         }
 
-        return redirect()->route('simulated.finish');
+        return redirect()->route($this->getFinishRouteName());
     }
 
     /**
-     * Calcula todos os resultados do simulado
+     * Calcula todos os resultados do teste
      */
-    private function calculateResults(array $sessionData): array
+    protected function calculateResults(array $sessionData): array
     {
         $startTime = Carbon::parse($sessionData['start_time']);
         $elapsedSeconds = $startTime->diffInSeconds(now());
@@ -322,7 +353,6 @@ class SimulatedController extends Controller
                     'selected_answer' => $attempt['answer_index'] ?? null,
                 ];
             } else {
-                // Questão não respondida
                 $question = Question::where('id_question', $idQuestion)->first();
 
                 $detailedResults[] = [
@@ -339,8 +369,8 @@ class SimulatedController extends Controller
         $wrongAnswers = count($sessionData['attempts']) - $correctAnswers;
         $unanswered = $totalQuestions - count($sessionData['attempts']);
         $percentage = $totalQuestions > 0 ? ($correctAnswers / $totalQuestions) * 100 : 0;
-        $passed = $percentage >= self::PASSING_PERCENTAGE;
-        $score = $correctAnswers * self::SCORE_MULTIPLIER;
+        $passed = $percentage >= static::PASSING_PERCENTAGE;
+        $score = $correctAnswers * static::SCORE_MULTIPLIER;
 
         return [
             'totalQuestions' => $totalQuestions,
@@ -359,7 +389,7 @@ class SimulatedController extends Controller
     /**
      * Formata tempo gasto (MM:SS)
      */
-    private function formatTimeTaken(int $seconds): string
+    protected function formatTimeTaken(int $seconds): string
     {
         $minutes = floor($seconds / 60);
         $secs = $seconds % 60;
@@ -370,7 +400,7 @@ class SimulatedController extends Controller
     /**
      * Formata tempo para banco de dados (HH:MM:SS)
      */
-    private function formatTimeForDatabase(int $seconds): string
+    protected function formatTimeForDatabase(int $seconds): string
     {
         $hours = floor($seconds / 3600);
         $minutes = floor(($seconds % 3600) / 60);
@@ -382,7 +412,7 @@ class SimulatedController extends Controller
     /**
      * Salva histórico no banco de dados
      */
-    private function saveHistory(array $results): void
+    protected function saveHistory(array $results): void
     {
         History::create([
             'user_id' => Auth::id(),
@@ -397,13 +427,15 @@ class SimulatedController extends Controller
     /**
      * Limpa dados da sessão
      */
-    private function clearSimulatedSession(): void
+    protected function clearTestSession(): void
     {
+        $prefix = $this->getSessionPrefix();
+
         session()->forget([
-            'simulated_question_ids_list',
-            'simulated_question_ids',
-            'simulated_attempts',
-            'simulated_start_time'
+            "{$prefix}_question_ids_list",
+            "{$prefix}_question_ids",
+            "{$prefix}_attempts",
+            "{$prefix}_start_time"
         ]);
     }
 }

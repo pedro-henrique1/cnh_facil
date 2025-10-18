@@ -10,6 +10,7 @@ enum SimulatedCategory: string
     case PRIMEIROS_SOCORROS = 'primeiros_socorros';
     case MEIO_AMBIENTE = 'meio_ambiente';
     case SIMULADO_GERAL = 'simulado_geral';
+    case  PRACTICAL_TEST = 'teste_pratico';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum SimulatedCategory: string
             self::PRIMEIROS_SOCORROS => 'Primeiros Socorros',
             self::MEIO_AMBIENTE => 'Meio Ambiente e Cidadania',
             self::SIMULADO_GERAL => 'Simulado Geral',
+            self::PRACTICAL_TEST => 'Teste Pratico'
         };
     }
 
