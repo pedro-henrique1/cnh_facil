@@ -99,32 +99,32 @@ jobs:
 
               echo "✅ Deploy concluído com sucesso!"
 
-- name: 🩺 Verificar saúde da aplicação
-  uses: appleboy/ssh-action@v1.2.0
-  with:
-    host: ${{ secrets.HOST }}
-    username: ${{ secrets.USERNAME }}
-    key: ${{ secrets.SSH_KEY }}
-    script: |
-      cd /opt/meuapp
-      echo "=== Status dos containers ==="
-      docker compose -f docker-compose-prod.yml ps
-      echo ""
-      echo "=== Logs recentes do app ==="
-      docker compose -f docker-compose-prod.yml logs --tail=20 app || true
-      echo ""
-      echo "=== Logs recentes do nginx ==="
-      docker compose -f docker-compose-prod.yml logs --tail=20 nginx || true
-      echo ""
-      echo "=== Teste HTTP local ==="
-      curl -fsS http://localhost || echo "⚠️ Aplicação pode não estar respondendo ainda"
+      - name: 🩺 Verificar saúde da aplicação
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/meuapp
+            echo "=== Status dos containers ==="
+            docker compose -f docker-compose-prod.yml ps
+            echo ""
+            echo "=== Logs recentes do app ==="
+            docker compose -f docker-compose-prod.yml logs --tail=20 app || true
+            echo ""
+            echo "=== Logs recentes do nginx ==="
+            docker compose -f docker-compose-prod.yml logs --tail=20 nginx || true
+            echo ""
+            echo "=== Teste HTTP local ==="
+            curl -fsS http://localhost || echo "⚠️ Aplicação pode não estar respondendo ainda"
 
-- name: 🧹 Limpar imagens antigas
-  if: success()
-  uses: appleboy/ssh-action@v1.2.0
-  with:
-    host: ${{ secrets.HOST }}
-    username: ${{ secrets.USERNAME }}
-    key: ${{ secrets.SSH_KEY }}
-    script: |
-      docker image prune -af --filter "until=24h"
+      - name: 🧹 Limpar imagens antigas
+        if: success()
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker image prune -af --filter "until=24h"
