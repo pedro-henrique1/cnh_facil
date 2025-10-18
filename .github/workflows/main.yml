@@ -32,9 +32,9 @@ jobs:
           echo "${{ secrets.SSH_KEY }}" > ssh_key
           chmod 600 ssh_key
 
-          # Copiar docker-compose.prod.yml
+          # Copiar docker-compose.yml
           rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" \
-            docker-compose.prod.yml \
+            docker-compose.yml \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/opt/meuapp/
 
           # Copiar pasta docker/
@@ -54,13 +54,16 @@ jobs:
             cd /opt/meuapp
 
             # Verificar se arquivo foi copiado
-            if [ ! -f docker-compose.prod.yml ]; then
-              echo "❌ ERRO: docker-compose.prod.yml não foi copiado!"
+            if [ ! -f docker-compose.yml ]; then
+              echo "❌ ERRO: docker-compose.yml não foi copiado!"
               exit 1
             fi
 
-            # Renomear docker-compose
-            mv docker-compose.prod.yml docker-compose.yml
+            # Modificar para usar imagem do Docker Hub
+            sed -i 's/build:/# build:/g' docker-compose.yml
+            sed -i 's/context: \./# context: \./g' docker-compose.yml
+            sed -i 's/dockerfile: Dockerfile/# dockerfile: Dockerfile/g' docker-compose.yml
+            sed -i '/# build:/a\        image: ${{ secrets.DOCKER_USERNAME }}/meuapp:latest' docker-compose.yml
 
             # Criar .env se não existir
             if [ ! -f .env ]; then
