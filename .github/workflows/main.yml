@@ -19,7 +19,6 @@ jobs:
       - name: Login no Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -28,6 +27,16 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/meuapp:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
 
+      - name: Copiar arquivos para o servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "docker-compose.prod.yml,docker/nginx/"
+          target: "/opt/meuapp"
+          strip_components: 0
+
       - name: Deploy na Droplet
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -35,13 +44,80 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
-            docker stop meuapp || true
-            docker rm meuapp || true
-            docker run -d --name meuapp -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
-            DEPLOY_DIR="/opt/meuapp"
-            mkdir -p $DEPLOY_DIR
-            cd $DEPLOY_DIR
-            docker compose down || true
-            docker compose up -d --build
+            cd /opt/meuapp
 
+            # Renomear arquivo de compose
+            mv docker-compose.prod.yml docker-compose.yml
+
+            # Criar .env se não existir
+            if [ ! -f .env ]; then
+              cat > .env <<EOF
+            APP_NAME=Laravel
+            APP_ENV=production
+            APP_KEY=
+            APP_DEBUG=false
+            APP_URL=http://localhost
+
+            DB_CONNECTION=mysql
+            DB_HOST=db
+            DB_PORT=3306
+            DB_DATABASE=laravel
+            DB_USERNAME=username
+            DB_PASSWORD=userpass
+
+            REDIS_HOST=redis
+            REDIS_PASSWORD=null
+            REDIS_PORT=6379
+
+            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            EOF
+            fi
+
+            # Pull da nova imagem
+            docker compose pull app
+
+            # Copiar arquivos estáticos do container para o volume
+            docker compose up -d app
+            CONTAINER_ID=$(docker compose ps -q app)
+            docker cp $CONTAINER_ID:/var/www/. /opt/meuapp/static/
+
+            # Restart completo
+            docker compose down
+            docker compose up -d
+
+            # Aguardar containers iniciarem
+            sleep 10
+
+            # Executar comandos Laravel
+            docker compose exec -T app php artisan key:generate --force || true
+            docker compose exec -T app php artisan config:cache
+            docker compose exec -T app php artisan route:cache
+            docker compose exec -T app php artisan view:cache
+            docker compose exec -T app php artisan migrate --force
+            docker compose exec -T app php artisan storage:link
+
+      - name: Verificar saúde da aplicação
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/meuapp
+            echo "=== Status dos containers ==="
+            docker compose ps
+            echo ""
+            echo "=== Logs do app (últimas 20 linhas) ==="
+            docker compose logs --tail=20 app
+            echo ""
+            echo "=== Logs do nginx (últimas 20 linhas) ==="
+            docker compose logs --tail=20 nginx
+
+      - name: Limpar imagens antigas
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker image prune -af --filter "until=24h"
