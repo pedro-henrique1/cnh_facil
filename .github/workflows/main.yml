@@ -96,6 +96,17 @@ jobs:
             # Restart dos containers
             echo "🔄 Reiniciando containers..."
             docker compose down
+            docker compose up -d app
+
+            # Copiar código do container para o volume compartilhado
+            echo "📋 Copiando código para volume compartilhado..."
+            sleep 5
+            CONTAINER_ID=$(docker compose ps -q app)
+            docker cp $CONTAINER_ID:/var/www/. /tmp/laravel-code/
+            docker run --rm -v meuapp_code-volume:/target -v /tmp/laravel-code:/source alpine sh -c "cp -r /source/. /target/"
+            rm -rf /tmp/laravel-code
+
+            # Subir todos os containers
             docker compose up -d
 
             # Aguardar containers iniciarem

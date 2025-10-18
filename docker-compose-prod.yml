@@ -25,7 +25,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - static-data:/var/www
+      - code-volume:/var/www:ro
       - ./docker/nginx/:/etc/nginx/conf.d/
     depends_on:
       - app
@@ -67,4 +67,4 @@ volumes:
   redis-data:
   storage-data:
   cache-data:
-  static-data:
+  app-code:
