@@ -36,7 +36,7 @@ jobs:
           ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p /opt/meuapp/docker"
 
           # envia os arquivos
-          rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" docker-compose.yml \
+          rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" docker-compose-prod.yml \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/opt/meuapp/
 
           rsync -avz -e "ssh -i ssh_key -o StrictHostKeyChecking=no" docker/ \
