@@ -28,20 +28,8 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/meuapp:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
 
+
       - name: Deploy na Droplet
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
-            docker stop meuapp || true
-            docker rm meuapp || true
-            docker run -d --name meuapp -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
-
-
-      - name: Deploy na Droplet (usando Docker Compose)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
