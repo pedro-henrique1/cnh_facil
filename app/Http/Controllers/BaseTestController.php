@@ -182,13 +182,10 @@ abstract class BaseTestController extends Controller
     /**
      * Obtém questões aleatórias
      */
-    protected function getRandomQuestions(int $limit, ?int $categoryId = null)
+    protected function getRandomQuestions(int $limit, ?int $categoryId = null): \Illuminate\Database\Eloquent\Collection
     {
-        $questionType = $this->getQuestionType();
 
         $query = Question::query();
-
-        $query->where('type', $questionType->value);
 
         if ($categoryId) {
             $query->where('category_id', $categoryId);

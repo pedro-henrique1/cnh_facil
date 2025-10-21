@@ -24,7 +24,7 @@ jobs:
 
       - name: 🏗️ Build e Push da imagem para o Docker Hub
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/meuapp:latest -f docker/Dockerfile .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/meuapp:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/meuapp:latest
 
       - name: 🚀 Copiar arquivos para o Droplet
@@ -60,44 +60,43 @@ jobs:
             if [ ! -f .env ]; then
               echo "🧾 Criando arquivo .env..."
               cat > .env <<EOF
-              APP_NAME=Laravel
-              APP_ENV=production
-              APP_KEY=
-              APP_DEBUG=false
-              APP_URL=http://seu-dominio.com
+            APP_NAME=Laravel
+            APP_ENV=production
+            APP_KEY=
+            APP_DEBUG=false
+            APP_URL=http://seu-dominio.com
 
-              DB_CONNECTION=mysql
-              DB_HOST=db
-              DB_PORT=3306
-              DB_DATABASE=laravel
-              DB_USERNAME=username
-              DB_PASSWORD=userpass
+            DB_CONNECTION=mysql
+            DB_HOST=db
+            DB_PORT=3306
+            DB_DATABASE=laravel
+            DB_USERNAME=username
+            DB_PASSWORD=userpass
 
-              REDIS_HOST=redis
-              REDIS_PASSWORD=null
-              REDIS_PORT=6379
+            REDIS_HOST=redis
+            REDIS_PASSWORD=null
+            REDIS_PORT=6379
 
-              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-              EOF
-              fi
+            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            EOF
+            fi
 
-              # Pull da imagem mais recente e restart dos containers
-              docker compose -f docker-compose-prod.yml pull
-              docker compose -f docker-compose-prod.yml down
-              docker compose -f docker-compose-prod.yml up -d
+            docker compose pull
+            docker compose down
+            docker compose up -d
 
-              echo "⏳ Aguardando inicialização..."
-              sleep 15
+            echo "⏳ Aguardando inicialização..."
+            sleep 15
 
-              echo "🔧 Executando comandos Laravel..."
-              docker compose -f docker-compose-prod.yml exec -T app php artisan key:generate --force || true
-              docker compose -f docker-compose-prod.yml exec -T app php artisan storage:link || true
-              docker compose -f docker-compose-prod.yml exec -T app php artisan migrate --force || true
-              docker compose -f docker-compose-prod.yml exec -T app php artisan config:cache || true
-              docker compose -f docker-compose-prod.yml exec -T app php artisan route:cache || true
-              docker compose -f docker-compose-prod.yml exec -T app php artisan view:cache || true
+            echo "🔧 Executando comandos Laravel..."
+            docker compose exec -T app php artisan key:generate --force || true
+            docker compose exec -T app php artisan storage:link || true
+            docker compose exec -T app php artisan migrate --force || true
+            docker compose exec -T app php artisan config:cache || true
+            docker compose exec -T app php artisan route:cache || true
+            docker compose exec -T app php artisan view:cache || true
 
-              echo "✅ Deploy concluído com sucesso!"
+            echo "✅ Deploy concluído com sucesso!"
 
       - name: 🩺 Verificar saúde da aplicação
         uses: appleboy/ssh-action@v1.2.0
@@ -108,13 +107,13 @@ jobs:
           script: |
             cd /opt/meuapp
             echo "=== Status dos containers ==="
-            docker compose -f docker-compose-prod.yml ps
+            docker compose ps
             echo ""
             echo "=== Logs recentes do app ==="
-            docker compose -f docker-compose-prod.yml logs --tail=20 app || true
+            docker compose logs --tail=20 app || true
             echo ""
             echo "=== Logs recentes do nginx ==="
-            docker compose -f docker-compose-prod.yml logs --tail=20 nginx || true
+            docker compose logs --tail=20 nginx || true
             echo ""
             echo "=== Teste HTTP local ==="
             curl -fsS http://localhost || echo "⚠️ Aplicação pode não estar respondendo ainda"

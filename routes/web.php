@@ -60,7 +60,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('show');
 
         Route::post('question/{questionNumber}/submit', [PracticalTestController::class, 'submitAnswer'])
-            ->name('simulation.submit'); // Nome completo: 'practical.simulation.submit'
+            ->name('submit');
 
         Route::get('finish', [PracticalTestController::class, 'finish'])
             ->name('finish');

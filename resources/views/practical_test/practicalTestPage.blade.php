@@ -34,7 +34,7 @@
                     @endif
                 </div>
 
-                <form id="answerForm" method="POST" action="{{ route('simulated.submit', $question->id_question) }}">
+                <form id="answerForm" method="POST" action="{{ route('practical.submit', $question->id_question) }}">
                     @csrf
                     <input type="hidden" name="answer_index" id="selectedAnswerIndex" value="{{ old('answer_index') }}">
 
@@ -112,8 +112,7 @@
 
             function updateTimer() {
                 if (totalSeconds <= 0) {
-                    // Redireciona para finalizar simulado quando o tempo acabar
-                    window.location.href = "{{ route('theoretical.simulated.finish') }}";
+                    window.location.href = "{{ route('practical.finish') }}";
                     return;
                 }
 
@@ -139,7 +138,8 @@
 
 
             nextButton.addEventListener('click', function() {
-                if (!selectedAnswerIndex.value) {
+                if (!selectedAnswerIndex.value && selectedAnswerIndex.value !== '0') {
+                    alert('Por favor, selecione uma resposta antes de continuar.');
                     return;
                 }
                 answerForm.submit();
@@ -159,9 +159,20 @@
             border: 2px solid transparent;
         }
 
+        .list-group-item.active {
+            background-color: #198754;
+            border-color: #198754;
+            color: white;
+        }
+
         .answer-option.active .answer-letter {
             color: #fff !important;
         }
+
+        .answer-option.active .answer-text {
+            color: #fff !important;
+        }
+
         .answer-text {
             flex: 1;
             word-wrap: break-word;

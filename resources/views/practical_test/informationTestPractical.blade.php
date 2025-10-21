@@ -1,9 +1,6 @@
 @extends('base')
 
-{{-- Define o título da página --}}
-@section('title', 'Guia de Faltas: Reprovação na Prova Prática')
 
-{{-- Adiciona CSS para o destaque visual --}}
 @push('styles')
     <style>
         .danger-zone {

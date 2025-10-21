@@ -44,7 +44,7 @@
         }
     </style>
 
-    <header class="hero-section">
+    <main class="container my-5">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
@@ -56,8 +56,6 @@
                 </div>
             </div>
         </div>
-    </header>
-    <main class="container my-5">
 
         <section class="mb-5 mt-5 pt-3">
             <h2 class="text-center mb-4">O Que Mudou?</h2>

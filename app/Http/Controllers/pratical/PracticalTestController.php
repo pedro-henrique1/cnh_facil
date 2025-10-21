@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\pratical;
 
 use App\Http\Controllers\BaseTestController;
-use App\Models\Question;
 use App\SimulatedType;
 
 class PracticalTestController extends BaseTestController
 {
     protected const TIME_LIMIT_MINUTES = 10;
-    // protected const PASSING_PERCENTAGE = 80; // Porcentagem maior
+     protected const PASSING_PERCENTAGE = 80;
 
     protected function getSessionPrefix(): string
     {
@@ -33,12 +32,8 @@ class PracticalTestController extends BaseTestController
 
     protected function getFinishViewName(): string
     {
-        return 'practical_test.finish';
+        return 'practical.simulated.finish';
     }
 
-    protected function getQuestionType(): SimulatedType
-    {
-        return SimulatedType::PRATICO;
-    }
 
 }

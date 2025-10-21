@@ -32,10 +32,7 @@ class TheoreticalTestController extends BaseTestController
         return 'theoretical_test.finish';
     }
 
-    protected function getQuestionType(): SimulatedType
-    {
-        return SimulatedType::TEORICO; // Define o filtro para 'teórico'
-    }
+
 
 
     // protected const TIME_LIMIT_MINUTES = 30; // Tempo diferente
