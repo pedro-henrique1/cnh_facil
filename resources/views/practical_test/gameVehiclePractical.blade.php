@@ -18,9 +18,8 @@
 
                         <form action="{{ route('practical.simulation.generate') }}" method="POST">
                             @csrf
-
-                                <input type="hidden" name="category_uuid" >
-                                <input type="hidden" name="num_questions" value="10">
+                            <input type="hidden" name="num_questions" value="10">
+                            <input type="hidden" name="category_id" value="7">
                                 <button type="submit" class="btn btn-success btn-lg mt-3">
                                     Iniciar Teste Prático
                                 </button>
@@ -42,6 +41,7 @@
                         <form action="{{ route('theoretical.simulation.generate') }}" method="POST">
                             @csrf
                             <input type="hidden" name="num_questions" value="30">
+                            <input type="hidden" name="category_id" value="6">
                             <button type="submit" class="btn btn-info btn-lg mt-3">
                                 Iniciar Simulado Padrão
                             </button>

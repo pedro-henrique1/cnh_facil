@@ -141,9 +141,9 @@
                             </a>
 
 
+                        </div>
                     </div>
                 </div>
-            </div>
     </main>
 
     @push('scripts')

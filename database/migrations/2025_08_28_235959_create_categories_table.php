@@ -18,7 +18,6 @@ return new class extends Migration
                 ->default(SimulatedCategory::SIMULADO_GERAL->value);
             $table->timestamps();
         });
-
     }
 
     /**

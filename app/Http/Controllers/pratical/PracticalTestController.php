@@ -8,7 +8,9 @@ use App\SimulatedType;
 class PracticalTestController extends BaseTestController
 {
     protected const TIME_LIMIT_MINUTES = 10;
-     protected const PASSING_PERCENTAGE = 80;
+    protected const PASSING_PERCENTAGE = 80;
+    protected const SCORE_MULTIPLIER = 5;
+
 
     protected function getSessionPrefix(): string
     {
@@ -32,7 +34,7 @@ class PracticalTestController extends BaseTestController
 
     protected function getFinishViewName(): string
     {
-        return 'practical.simulated.finish';
+        return 'practical_test.practicalTestFinish';
     }
 
 

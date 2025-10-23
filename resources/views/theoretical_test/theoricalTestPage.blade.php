@@ -5,7 +5,8 @@
         <div class="container">
             <div class="px-3 px-md-5 py-4">
 
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
+                <div
+                    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
                     <span class="fs-6 fw-bold text-primary mb-2 mb-md-0">
                         <i class="bi bi-clock me-2"></i>
                         Tempo Restante:
@@ -17,16 +18,14 @@
                     </span>
                 </div>
 
-                {{-- Pergunta --}}
                 <div class="mb-4">
                     <h4 class="fw-bold text-dark" id="questionText">
                         {{ $question->question }}
                     </h4>
 
-                    {{-- Imagem --}}
                     @if ($question->image)
                         <div class="text-center my-4">
-                            <img src="{{ asset('storage/' . $question->image) }}"
+                            <img src="{{ $question->image ? asset('storage/' . $question->image) : asset('images/default.png') }}"
                                  class="img-fluid rounded shadow-sm"
                                  alt="Imagem da questão"
                                  style="max-height: 400px; object-fit: contain;">
@@ -34,7 +33,7 @@
                     @endif
                 </div>
 
-                <form id="answerForm" method="POST" action="{{ route('simulated.submit', $question->id_question) }}">
+                <form id="answerForm" method="POST" action="{{ route('simulated.submit', $encryptedQuestionId) }}">
                     @csrf
                     <input type="hidden" name="answer_index" id="selectedAnswerIndex" value="{{ old('answer_index') }}">
 
@@ -60,7 +59,7 @@
                                     data-answer="{{ $index }}"
                                     data-index="{{ $index }}">
                                 <span class="fw-bold text-primary answer-letter">{{ chr(65 + $index) }})</span>
-                                <span class="answer-text">{{ $answerData['answer_text'] ?? '' }}</span>
+                                <span class="answer-text">{{ $answerData['text'] ?? '' }}</span>
                             </button>
                         @empty
                             <div class="alert alert-warning" role="alert">
@@ -106,43 +105,95 @@
             const nextButton = document.getElementById('nextQuestionBtn');
             const timerElement = document.getElementById('timer');
 
-            // Pega o tempo inicial do data-time, formato "MM:SS"
+            // Variável para controlar envio
+            let isSubmitting = false;
+
+            // Timer
             let [minutes, seconds] = timerElement.dataset.time.split(':').map(Number);
             let totalSeconds = minutes * 60 + seconds;
 
             function updateTimer() {
                 if (totalSeconds <= 0) {
-                    // Redireciona para finalizar simulado quando o tempo acabar
                     window.location.href = "{{ route('theoretical.simulated.finish') }}";
                     return;
                 }
-
                 const displayMinutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
                 const displaySeconds = (totalSeconds % 60).toString().padStart(2, '0');
-
                 timerElement.textContent = `${displayMinutes}:${displaySeconds}`;
-
                 totalSeconds--;
             }
 
+            // Inicia o timer
             updateTimer();
             setInterval(updateTimer, 1000);
 
+            function showAlert(message, type = 'warning') {
+                // Remover alertas anteriores
+                const existingAlert = document.getElementById('dynamicAlert');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+
+                const alertDiv = document.createElement('div');
+                alertDiv.id = 'dynamicAlert';
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+                alertDiv.style.zIndex = '9999';
+                alertDiv.style.maxWidth = '90%';
+                alertDiv.style.width = 'auto';
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(alertDiv);
+
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 4000);
+            }
 
             answerButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     answerButtons.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     selectedAnswerIndex.value = this.getAttribute('data-index');
                 });
             });
 
-
-            nextButton.addEventListener('click', function() {
-                if (!selectedAnswerIndex.value) {
-                    return;
-                }
+            // Envio da resposta
+            nextButton.addEventListener('click', function () {
+                if (!selectedAnswerIndex.value) return;
+                isSubmitting = true;
                 answerForm.submit();
+            });
+
+            // Bloquear botão voltar do navegador
+            history.pushState(null, null, location.href);
+            window.onpopstate = function () {
+                if (!isSubmitting) {
+                    history.go(1);
+                    showAlert('⚠️ Você não pode voltar às questões anteriores!');
+                }
+            };
+
+            // Bloquear atalhos de teclado
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Backspace' && e.target.nodeName !== 'INPUT' && e.target.nodeName !== 'TEXTAREA') {
+                    e.preventDefault();
+                }
+                if (e.altKey && e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    showAlert('⚠️ Atalho desabilitado durante o teste!');
+                }
+            });
+
+            // Aviso ao sair da página (apenas se não estiver enviando)
+            window.addEventListener('beforeunload', function (e) {
+                if (!isSubmitting) {
+                    e.preventDefault();
+                    e.returnValue = 'Tem certeza que deseja sair? Seu progresso será perdido.';
+                }
             });
         });
     </script>
@@ -153,6 +204,7 @@
         body {
             background-color: #f8f9fa;
         }
+
         .list-group-item {
             transition: all 0.2s ease-in-out;
             cursor: pointer;
@@ -162,6 +214,7 @@
         .answer-option.active .answer-letter {
             color: #fff !important;
         }
+
         .answer-text {
             flex: 1;
             word-wrap: break-word;

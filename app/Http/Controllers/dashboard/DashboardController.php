@@ -18,13 +18,12 @@ class DashboardController extends Controller
             'userMissions.mission'
         ]);
 
-        // 2. Calcula a pontuação total (método eficiente de banco de dados).
         $totalScore = $user->histories()->sum('score');
 
         $simulations = $user->histories()->latest()->get();
 
         // Se fosse usar Paginação (melhor para grandes volumes de dados):
-        // $simulations = $user->histories()->latest()->paginate(10);
+         $simulations = $user->histories()->latest()->paginate(10);
 
         // A variável $activeMissions não precisa mais ser definida, pois
         // ela está disponível em $user->userMissions após o Eager Loading.

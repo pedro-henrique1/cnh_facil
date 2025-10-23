@@ -7,10 +7,11 @@ use Illuminate\Support\Str;
 
 class Question extends Model
 {
-    protected $fillable = ['question', 'category_id', 'image'];
+    protected $fillable = ['question', 'category_id', 'images'];
 
     protected $casts = [
         'question' => 'string',
+        'images' => 'array',
     ];
 
     protected static function boot()

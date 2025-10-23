@@ -7,6 +7,11 @@ use App\SimulatedType;
 
 class TheoreticalTestController extends BaseTestController
 {
+
+    protected const TIME_LIMIT_MINUTES = 30;
+    protected const PASSING_PERCENTAGE = 60;
+    protected const SCORE_MULTIPLIER = 5;
+
     protected function getSessionPrefix(): string
     {
         return 'theoretical_test';
@@ -31,10 +36,4 @@ class TheoreticalTestController extends BaseTestController
     {
         return 'theoretical_test.finish';
     }
-
-
-
-
-    // protected const TIME_LIMIT_MINUTES = 30; // Tempo diferente
-    // protected const PASSING_PERCENTAGE = 60; // Porcentagem diferente
 }

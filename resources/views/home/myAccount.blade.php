@@ -186,6 +186,9 @@
                 </div>
             @endforeach
         </div>
+        <div class="mt-5 mb-5 d-flex justify-content-center">
+            {{ $simulations->links() }}
+        </div>
     </div>
 
     <div class="modal fade" id="accountModal" tabindex="-1" aria-labelledby="accountModalLabel" aria-hidden="true">

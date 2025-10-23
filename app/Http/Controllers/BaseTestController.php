@@ -9,38 +9,45 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 abstract class BaseTestController extends Controller
 {
-    protected const TIME_LIMIT_MINUTES = 40;
-    protected const PASSING_PERCENTAGE = 70;
-    protected const SCORE_MULTIPLIER = 5;
+//    protected const PASSING_PERCENTAGE = 70;
+//    protected const SCORE_MULTIPLIER = 5;
 
-    /**
-     * Prefixo da sessão (deve ser sobrescrito nas classes filhas)
-     */
     abstract protected function getSessionPrefix(): string;
-
-    /**
-     * Nome da rota para exibir questão (deve ser sobrescrito)
-     */
     abstract protected function getShowRouteName(): string;
-
-    /**
-     * Nome da rota para finalizar (deve ser sobrescrito)
-     */
     abstract protected function getFinishRouteName(): string;
-
-    /**
-     * Nome da view para exibir questão (deve ser sobrescrito)
-     */
     abstract protected function getQuestionViewName(): string;
+    abstract protected function getFinishViewName(): string;
 
     /**
-     * Nome da view para exibir resultado (deve ser sobrescrito)
+     * Criptografa o UUID da questão
      */
-    abstract protected function getFinishViewName(): string;
+    protected function encryptQuestionId(string $questionId): string
+    {
+        return Crypt::encryptString($questionId);
+    }
+
+    /**
+     * Descriptografa o UUID da questão
+     */
+    protected function decryptQuestionId(string $encryptedId): ?string
+    {
+        try {
+            return Crypt::decryptString($encryptedId);
+        } catch (\Exception $e) {
+            Log::warning('Tentativa de descriptografar ID inválido', [
+                'encrypted_id' => $encryptedId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
 
     /**
      * Gera e inicia um novo teste
@@ -53,7 +60,8 @@ abstract class BaseTestController extends Controller
         ]);
 
         $numQuestions = $validated['num_questions'] ?? 30;
-        $categoryId = $validated['category_id'] ?? null;
+
+        $categoryId = $validated['category_id'] ?? 6;
 
         $questions = $this->getRandomQuestions($numQuestions, $categoryId);
 
@@ -64,15 +72,24 @@ abstract class BaseTestController extends Controller
         $this->initializeTestSession($questions);
 
         $firstQuestionId = $questions->first()->id_question;
+        $encryptedId = $this->encryptQuestionId($firstQuestionId);
 
-        return redirect()->route($this->getShowRouteName(), ['questionNumber' => $firstQuestionId]);
+        return redirect()->route($this->getShowRouteName(), ['questionNumber' => $encryptedId]);
     }
 
     /**
-     * Exibe a questão pelo id_question
+     * Exibe a questão pelo id_question criptografado
      */
-    public function showQuestion(string $questionNumber): Factory|View|RedirectResponse
+    public function showQuestion(string $encryptedQuestionNumber): Factory|View|RedirectResponse
     {
+        $questionNumber = $this->decryptQuestionId($encryptedQuestionNumber);
+
+        if (!$questionNumber) {
+            return redirect()->route($this->getFinishRouteName())
+                ->with('error', 'ID de questão inválido.');
+        }
+
+        // 🔧 ERRO 2: Usar $questionNumber, não $encryptedQuestionNumber
         $questionData = $this->getQuestionByIdQuestion($questionNumber);
 
         if (!$questionData) {
@@ -80,6 +97,22 @@ abstract class BaseTestController extends Controller
         }
 
         ['question' => $question, 'currentIndex' => $currentIndex, 'sessionData' => $sessionData] = $questionData;
+
+        $lastAnsweredIndex = $this->getLastAnsweredQuestionIndex($sessionData);
+
+        if ($currentIndex < $lastAnsweredIndex) {
+            $encryptedNextId = $this->encryptQuestionId($sessionData['question_ids_list'][$lastAnsweredIndex]);
+            return redirect()
+                ->route($this->getShowRouteName(), ['questionNumber' => $encryptedNextId])
+                ->with('warning', '⚠️ Você não pode voltar às questões anteriores.');
+        }
+
+        if ($currentIndex > $lastAnsweredIndex) {
+            $encryptedNextId = $this->encryptQuestionId($sessionData['question_ids_list'][$lastAnsweredIndex]);
+            return redirect()
+                ->route($this->getShowRouteName(), ['questionNumber' => $encryptedNextId])
+                ->with('warning', '⚠️ Você não pode pular questões.');
+        }
 
         $remainingTime = $this->calculateRemainingTime($sessionData['start_time']);
 
@@ -89,7 +122,13 @@ abstract class BaseTestController extends Controller
 
         $currentQuestionNumber = $currentIndex + 1;
         $totalQuestions = count($sessionData['question_ids_list']);
-        $nextQuestionId = $sessionData['question_ids_list'][$currentIndex + 1] ?? null;
+
+        $nextQuestionId = null;
+        if (isset($sessionData['question_ids_list'][$currentIndex + 1])) {
+            $nextQuestionId = $this->encryptQuestionId($sessionData['question_ids_list'][$currentIndex + 1]);
+        }
+
+        $encryptedCurrentId = $this->encryptQuestionId($question->id_question);
 
         return view($this->getQuestionViewName(), [
             'question' => $question,
@@ -100,17 +139,26 @@ abstract class BaseTestController extends Controller
             'progress' => $this->calculateProgress($currentQuestionNumber, $totalQuestions),
             'answeredQuestions' => count($sessionData['attempts']),
             'nextQuestionId' => $nextQuestionId,
+            'encryptedQuestionId' => $encryptedCurrentId,
         ]);
     }
 
     /**
-     * Processa a resposta da questão pelo id_question
+     * Processa a resposta da questão pelo id_question criptografado
      */
-    public function submitAnswer(Request $request, string $questionNumber): RedirectResponse
+    public function submitAnswer(Request $request, string $encryptedQuestionNumber): RedirectResponse
     {
         $validated = $request->validate([
             'answer_index' => 'required|integer|min:0|max:3'
         ]);
+
+        // Descriptografar o ID
+        $questionNumber = $this->decryptQuestionId($encryptedQuestionNumber);
+
+        if (!$questionNumber) {
+            return redirect()->route($this->getFinishRouteName())
+                ->with('error', 'ID de questão inválido.');
+        }
 
         $questionData = $this->getQuestionByIdQuestion($questionNumber);
 
@@ -119,6 +167,13 @@ abstract class BaseTestController extends Controller
         }
 
         ['question' => $question, 'currentIndex' => $currentIndex, 'sessionData' => $sessionData] = $questionData;
+
+        if (isset($sessionData['attempts'][$questionNumber])) {
+            $encryptedCurrentId = $this->encryptQuestionId($questionNumber);
+            return redirect()
+                ->route($this->getShowRouteName(), ['questionNumber' => $encryptedCurrentId])
+                ->with('warning', '⚠️ Esta questão já foi respondida.');
+        }
 
         $isCorrect = $this->validateAnswer($question, $validated['answer_index']);
 
@@ -147,6 +202,23 @@ abstract class BaseTestController extends Controller
         $this->clearTestSession();
 
         return view($this->getFinishViewName(), $results);
+    }
+
+    /**
+     * Obtém o índice da última questão respondida
+     */
+    protected function getLastAnsweredQuestionIndex(array $sessionData): int
+    {
+        if (empty($sessionData['attempts'])) {
+            return 0;
+        }
+
+        $answeredIdQuestions = array_keys($sessionData['attempts']);
+        $lastAnsweredIdQuestion = end($answeredIdQuestions);
+
+        $lastIndex = array_search($lastAnsweredIdQuestion, $sessionData['question_ids_list']);
+
+        return $lastIndex !== false ? $lastIndex + 1 : 0;
     }
 
     /**
@@ -182,18 +254,37 @@ abstract class BaseTestController extends Controller
     /**
      * Obtém questões aleatórias
      */
-    protected function getRandomQuestions(int $limit, ?int $categoryId = null): \Illuminate\Database\Eloquent\Collection
+    protected function getRandomQuestions(int $limit, ?int $categoryId = null): Collection
     {
-
-        $query = Question::query();
-
-        if ($categoryId) {
-            $query->where('category_id', $categoryId);
+        if ($categoryId !== 6) {
+            return Question::query()
+                ->where('category_id', $categoryId)
+                ->inRandomOrder()
+                ->limit($limit)
+                ->get(['id', 'id_question', 'question', 'category_id']);
         }
 
-        return $query->inRandomOrder()
-            ->limit($limit)
-            ->get(['id', 'id_question', 'question', 'category_id']);
+        $proportions = [
+            1 => 12,
+            8 => 6,
+            2 => 7,
+            4 => 3,
+            3 => 2,
+        ];
+
+        $questions = collect();
+
+        foreach ($proportions as $id => $count) {
+            $categoryQuestions = Question::query()
+                ->where('category_id', $id)
+                ->inRandomOrder()
+                ->limit($count)
+                ->get(['id', 'id_question', 'question', 'category_id']);
+
+            $questions = $questions->merge($categoryQuestions);
+        }
+
+        return $questions->shuffle();
     }
 
     /**
@@ -302,7 +393,7 @@ abstract class BaseTestController extends Controller
     }
 
     /**
-     * Redireciona para próxima questão ou finaliza
+     * Redireciona para próxima questão ou finaliza (com ID criptografado)
      */
     protected function redirectToNextQuestion(int $currentIndex, array $questionIdsList): RedirectResponse
     {
@@ -310,7 +401,8 @@ abstract class BaseTestController extends Controller
 
         if ($nextIndex < count($questionIdsList)) {
             $nextIdQuestion = $questionIdsList[$nextIndex];
-            return redirect()->route($this->getShowRouteName(), ['questionNumber' => $nextIdQuestion]);
+            $encryptedNextId = $this->encryptQuestionId($nextIdQuestion);
+            return redirect()->route($this->getShowRouteName(), ['questionNumber' => $encryptedNextId]);
         }
 
         return redirect()->route($this->getFinishRouteName());
