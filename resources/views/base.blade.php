@@ -165,8 +165,10 @@
                     <ul class="list-unstyled">
                         <li><a href="https://www.gov.br/pt-br/temas/servicos-de-transito"
                                 class="text-light text-decoration-none">Portal do DETRAN</a></li>
-                        <li><a href="#" class="text-light text-decoration-none">Legislação de Trânsito</a></li>
-                        <li><a href="#" class="text-light text-decoration-none">Simulados Oficiais</a></li>
+                        <li><a href="https://www.legislacaodetransito.com.br/"
+                                class="text-light text-decoration-none">Legislação de Trânsito</a></li>
+                        <li><a href="https://www.simuladodetranmg.com.br/#"
+                                class="text-light text-decoration-none">Simulados Oficiais</a></li>
                     </ul>
                 </div>
 
@@ -174,7 +176,6 @@
                     <h5 class="text-warning">Contato</h5>
                     <p>Email: <a href="mailto:DetranSemAutoescola@gmail.com"
                             class="text-white">DetranSemAutoescola@gmail.com</a></p>
-                    <p>Telefone: (24) XXXXX-XXXX</p>
                 </div>
             </div>
 
