@@ -89,7 +89,7 @@
                             </li>
                             <li>
                                 <a class="dropdown-item text-white @if (request()->routeIs('theoretical.questions')) active fw-bold @endif"
-                                    href="{{ route('theoretical.questions') }}">Questões</a>
+                                    href="{{ route('theoretical.questions') }}">dicas</a>
                             </li>
                             <li>
                                 <a class="dropdown-item text-white @if (request()->routeIs('theoretical.simulation')) active fw-bold @endif"
@@ -174,17 +174,16 @@
 
                 <div class="col-md-6">
                     <h5 class="text-warning">Contato</h5>
-                    <p>Email: <a href="mailto:DetranSemAutoescola@gmail.com"
-                            class="text-white">DetranSemAutoescola@gmail.com</a></p>
+                    <p>Email: <a href="mailto:CnhSemAutoescola@gmail.com" </div>
+                </div>
+
+                <hr class="border-secondary">
+
+                <div class="text-center">
+                    <p class="mb-0">&copy; {{ date('Y') }} CnhSemAutoescola.com - Todos os direitos reservados
+                    </p>
                 </div>
             </div>
-
-            <hr class="border-secondary">
-
-            <div class="text-center">
-                <p class="mb-0">&copy; {{ date('Y') }} DetranSemAutoescola.com - Todos os direitos reservados</p>
-            </div>
-        </div>
     </footer>
 
 

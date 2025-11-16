@@ -48,10 +48,8 @@
                     </div>
 
                     <div class="col-12 col-md-4 text-center">
-                        <img class="img-fluid rounded shadow-sm"
-                             src="{{ asset('images/SDG-4.svg') }}"
-                             alt="ODS 4"
-                             style="max-width: 220px;">
+                        <img class="img-fluid rounded shadow-sm" src="{{ asset('images/SDG-4.svg') }}" alt="ODS 4"
+                            style="max-width: 220px;">
                     </div>
                 </div>
             </div>
@@ -62,10 +60,8 @@
             <div class="container">
                 <div class="row align-items-center g-5">
                     <div class="col-12 col-md-4 text-center">
-                        <img class="img-fluid rounded-circle shadow"
-                             src="{{ asset('images/SDG-4.svg') }}"
-                             alt="ODS 4"
-                             style="max-width: 180px;">
+                        <img class="img-fluid rounded-circle shadow" src="{{ asset('images/image.jpeg') }}" alt="ODS 4"
+                            style="max-width: 180px;">
                     </div>
                     <div class="col-12 col-md-8 text-center">
                         <h2 class="fw-semibold">Professora Orientadora</h2>
@@ -99,7 +95,7 @@
 @push('styles')
     <style>
         .hero-banner {
-            background: url('{{ asset("images/Gemini_Generated_Image_xj7ascxj7ascxj7a.png") }}') no-repeat center center;
+            background: url('{{ asset('images/Gemini_Generated_Image_xj7ascxj7ascxj7a.png') }}') no-repeat center center;
             background-size: cover;
             min-height: 500px;
             position: relative;
@@ -143,7 +139,8 @@
 
         /* Fundo azul claro */
         .section-alt {
-            background-color: #eaf2fb; /* tom azul bem suave */
+            background-color: #eaf2fb;
+            /* tom azul bem suave */
         }
 
         .section-spacing h2 {
